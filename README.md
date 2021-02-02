@@ -7,11 +7,12 @@ git clone git@github.com:sblabkribb/dsembler.git
 ## Pre-requisit
 docker, docker-compose, mongoDB
 
-## docker image
-haseong/os:v0.2
-
 ## start
-docker-compose up -d
+  GO to the dsembler directory
+  docker-compose up -d
+  docker exec -it dsembler /bin/bash
+  python dsembler.py
+
 
 ## stop
 docker-compose down
