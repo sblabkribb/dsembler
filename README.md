@@ -1,11 +1,11 @@
 # dsembler
 DNA assembly designer
 
-# INSTALL
+## INSTALL
 git clone git@github.com:sblabkribb/dsembler.git
 
-# Requirement
-- docker, mongoDB
+## Pre-requisit
+- docker, docker-compose, mongoDB
 
 ## start
 docker-compose up -d
