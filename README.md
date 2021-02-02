@@ -8,10 +8,10 @@ git clone git@github.com:sblabkribb/dsembler.git
 docker, docker-compose, mongoDB
 
 ## start
-  GO to the dsembler directory
-  docker-compose up -d
-  docker exec -it dsembler /bin/bash
-  python dsembler.py
+  - GO to the dsembler directory
+  - docker-compose up -d
+  - docker exec -it dsembler /bin/bash
+  - python dsembler.py
 
 
 ## stop
