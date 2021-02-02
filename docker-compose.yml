@@ -1,0 +1,39 @@
+version: '2'
+
+services:
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    restart: always
+    ports:
+      - 27017:27017
+    volumes: 
+        - ./mongodb:/home/mongodb
+    environment:
+        MONGO_HOST: localhost
+        MONGO_PORT: 27017
+        MONGO_INITDB_ROOT_USERNAME: root
+        MONGO_INITDB_ROOT_PASSWORD: rootpass
+        MONGO_INITDB_DATABASE: haseong
+
+
+        
+  dsembler:
+    image: haseong/os:v0.2
+    container_name: dsembler 
+    build:
+      context: .
+      dockerfile: ./Dockerfile-dsembler
+    volumes:
+     - ./dsembler:/home/dsembler
+    stdin_open: true
+    ports:
+        - 0.0.0.0:5000:5000
+    environment:
+      DEBUG_COLORS: "true"
+      TERM: xterm-256color
+      COLORTERM: truecolor
+    command: 
+        - /bin/bash 
+    
+
