@@ -1,0 +1,175 @@
+gene_seq = request.form['gene_seq']
+            oligomer_size = request.form['oligomer_size']
+            overlap_size = request.form['overlap_size']
+            melting_temp = request.form['melting_temp']
+            temp_range = request.form['temp_range']
+            cluster_size = request.form['cluster_size']
+            cluster_range = request.form['cluster_range']
+
+
+
+            gene_seq = request.form.get('gene_seq')
+            oligomer_size = request.form.get('oligomer_size')
+            overlap_size = request.form.get('overlap_size')
+            melting_temp = request.form.get('melting_temp')
+            temp_range = request.form.get('temp_range')
+            cluster_size = request.form.get('cluster_size')
+            cluster_range = request.form.get('cluster_range')
+
+conn.execute('CREATE TABLE IF NOT EXISTS oligomer (user TEXT, gene_seq TEXT, oligomer_seq TEXT, overlap_seq TEXT, melting_temp TEXT, temp_range TEXT, cluster_size TEXT, cluster_range TEXT)')
+
+@app.route('/addrec',methods = ['POST', 'GET'])
+def addrec():
+   if request.method == 'POST':
+        try:
+            user = "Guest"
+            gene_seq = request.form['gene_seq']
+            oligomer_size = request.form['oligomer_size']
+            overlap_size = request.form['overlap_size']
+            melting_temp = request.form['melting_temp']
+            temp_range = request.form['temp_range']
+            cluster_size = request.form['cluster_size']
+            cluster_range = request.form['cluster_range']
+         
+            with sqlite3.connect("database.db") as con:
+                cur = con.cursor()
+                cur.execute("INSERT INTO oligomer (user, gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range) VALUES (?,?,?,?,?,?,?,?)",(user, gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range) )
+                con.commit()
+                msg = "Record successfully added"
+        except:
+            con.rollback()
+            msg = "error in insert operation"
+      
+        finally:
+            return render_template("result.html",msg = msg)
+            con.close()
+
+
+            {% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block head %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    <title>Dsembler</title>
+{% endblock head %}
+
+{% block content %}
+
+    <header class = "navbar navbar-expand-md navbar-dark bg-dark bd-navbar">
+        <nav class = "container-sm flex-wrap flex-md-nowrap" aria-label="Main navigation">
+            <a class="navbar-brand p-0" href="/" aria-label="Dsembler"> Image </a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"> </span>
+          </button>
+          <div class="col-md-8 collapse navbar-collapse">
+              <ul class="navbar-nav flex-row flex-wrap bd-navbar-nav pt-2 py-md-0">
+                  <li class="nav-item nav-link active" href="#"> Form </li>
+                  <li class="nav-item nav-link" href="#"> Protocol </li>
+                  <li class="nav-item nav-link" href="#"> Documentation </li>
+              </ul>
+              <ul class="navbar-nav flex-row flex-wrap ms-md-auto">
+                <a class="navbar-item nav-link" href="/login/" aria-label="Dsembler"> Login </a>
+                <a class="navbar-item nav-link" href="/sign-up/" aria-label="Dsembler"> Sign Up </a>  
+              </ul>
+          </div>
+        </nav>
+    </header>
+
+    <div class="container-sm"><br>
+        <h1>Dsembler</h1>
+        <h4>DNA Assembly Designer</h4>
+        <hr>
+        <div class="row align-items-center justify-content-center"></div>
+        <div class="col-md-12">
+            <form  action="/" method="post" role="form", enctype="multipart/form-data">
+                <div class="form-group">
+                    <h6>Gene Sequence:</h6>
+                    <input type="text" name="gene_seq" class="form-control" id="inputGeneSeq" placeholder="Enter Gene Sequence">
+                    <p> OR Upload a FASTA file </p>
+                    {{ forms.genes }}
+                </div>
+                <br>
+                <div class="form-group"> 
+                    <h6>Target Oligomer Size:</h6>
+                    <input type="text" name="oligomer_size" class="form-control" id="inputOligomerSize" placeholder="Nucleotides">
+                </div>
+                <br>
+                <div class="form-group">
+                    <h6>Target Overlap Size:</h6>
+                    <input type="text" name="overlap_size" class="form-control" id="inputOverlapSize" placeholder="Nucleotides">
+                </div>
+                <br>
+                <div class="row">
+                    <div class = "form-group col-md-10">
+                        <h6>Melting Temperature of overlap(ºC):</h6>
+                        <input type="text" name="melting_temp" class="form-control" id="inputMeltingTemp" placeholder="ºC">  
+                    </div>
+                    <div class="form-group col-md-2">
+                        <h6>± (ºC):</h6>
+                        <input type="text" name="temp_range" class="form-control" id="inputTempRange" placeholder="ºC">
+                    </div>
+                </div>
+                <br>
+                <div class="row">
+                    <div class = "form-group col-md-10">
+                        <h6>Target Cluster Size:</h6>
+                        <input type="text" name="cluster_size" class="form-control" id="inputClusterSize" placeholder="Number of Oligomers">
+                    </div>
+                    <div class="form-group col-md-2">
+                        <h6>±:</h6>
+                        <input type="text" name="cluster_range" class="form-control" id="inputClusterRange" placeholder="">
+                    </div>
+                </div>
+                <br>
+                <div class="row">
+                    <div class = "form-group col-md-12">
+                        <form action="/" method = "post">
+                            <input type="checkbox" value="y" name="membercheckbox"> Do you want to save these parameters?
+                            <br>
+                            <br>
+                            {% if savedata == 'y' %}
+                                {{ redirect(url_for(login)) }}
+                                <button formaction="/insert_item" type="button" class="btn btn-primary" onclick="postItem()">Save item</button>
+                            {% endif %}
+                            <center>
+                                <button type="submit" class="btn btn-success">Submit</button>
+                                <a href="\list">List</a>
+                            </center>
+                        </form>
+                    </div>
+                </div> 
+            </form>
+        </div>
+    </div>
+
+    <div class="container-sm"><br>
+        <div class="row align-items-center justify-content-center">
+            <div class="col-md-8">
+                {% if clusters != None %}
+                    <center>
+                        <a href="/return-excel-file/" target="blank"><button class='btn btn-info btn-lg'>Excel File</button></a>
+                        <a href="/return-fasta-files/" target="blank"><button class='btn btn-info btn-lg'>FASTA File</button></a>
+                    </center>
+                {% endif %}
+            </div>
+        </div>
+        <a href="{{ url_for('index') }}"><button class='btn btn-secondary'>Refresh</button></a>
+    </div>
+
+{% endblock content %}
+
+try:
+            with sqlite3.connect("database.db") as con:
+                cur = con.cursor()
+                cur.execute("SELECT * FROM users WHERE user = ?", (user))
+                if cur.fetchone() == None:
+                    cur.execute("INSERT INTO users (user) VALUES (?)", (user))
+                    con.commit()
+                    print("Record added")
+        except:
+            con.rollback()
+            msg = "error in insert operation"
+        
+        finally:
+            return render_template("signup.html")
+            con.close()

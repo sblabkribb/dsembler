@@ -1,0 +1,22 @@
+<html>
+  <body>
+
+    <table border="1">
+      <thead>
+        <thead>
+          <td>User</td>
+          <td>Name</td>
+       </thead>
+       
+       {% for row in rowe %}
+          <tr>
+             <td>{{row["member"]}}</td>
+             <td>{{row["name"]}}</td>
+          </tr>
+       {% endfor %}
+    </table>
+
+    <a href="/"> Go back to the main page </a>
+
+  </body>
+</html>

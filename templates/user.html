@@ -1,0 +1,124 @@
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block head %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    <link rel="stylesheet" href="static/dsembler.css">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+    <title>Dsembler</title>
+
+
+{% endblock head %}
+
+{% block content %}
+
+    <header class = "navbar navbar-expand-md navbar-dark bg-dark bd-navbar">
+        <nav class = "container-sm flex-wrap flex-md-nowrap" aria-label="Main navigation">
+            <a class="navbar-brand p-0" href="/" aria-label="Dsembler"> Image </a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"> </span>
+          </button>
+          <div class="col-md-8 collapse navbar-collapse">
+              <ul class="navbar-nav flex-row flex-wrap bd-navbar-nav pt-2 py-md-0">
+                  <li class="nav-item nav-link active" href=""> Form </li>
+                  <li class="nav-item nav-link" href="#"> Protocol </li>
+                  <li class="nav-item nav-link" href="#"> Documentation </li>
+              </ul>
+              <ul class="navbar-nav flex-row flex-wrap ms-md-auto">
+                <!-- <a class="navbar-item nav-link" aria-label="Dsembler"> Previous Work </a> -->
+                <a href="{{ url_for('logout') }}"class="navbar-item nav-link" aria-label="Dsembler"> Logout </a>
+          </div>
+        </nav>
+    </header>
+
+    <div class="list-container">
+    <div class="container mb=3 mt-3">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        <span>{{ message }}</span>
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    
+    <table id="item-list-table" class="table table-bordered">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Target sequence</th>
+                <th>Oligomer size</th>
+                <th>Overlap size</th>
+                <th>Optimal Melting Temp.</td>
+                <th>+- (C)</th>
+                <th>Oligomers per cluster</th>
+                <th>+-</th>
+            </tr>
+        </thead>
+
+    </div>
+    </div>
+
+    <div class = "container-sm">
+        {% if rows != None %}
+             {% for row in rows %}
+                <tr>
+                   <td><a href="{{url_for('prev_results', record_id = row['id']) }}"><input type="submit" name="edit_btn" value="+"rel="tooltip" class="btn btn-info"></a></td>
+                   <td>{{row["gene_seq"]}}</td>
+                   <td>{{row["oligomer_size"]}}</td>
+                   <td>{{row['overlap_size']}}</td>
+                   <td>{{row["melting_temp"]}}</td>
+                   <td>{{row["temp_range"]}}</td>
+                   <td>{{row["cluster_size"]}}</td>
+                   <td>{{row["cluster_range"]}}</td>
+                </tr>
+             {% endfor %}
+        {% endif %}
+        </table>
+    {{table}}
+    <a href="/"> Go back to the main page </a>
+    </div>
+
+    <div id="dataModal" class="modal fade" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Data</h4> 
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form action="/prev-results/" method="POST">
+                    <div class = "container-sm">
+                    <div class="form-group">
+                        <div class="form-group"> 
+                        <h6>Previous Work</h6>
+                        <div class = "container-sm">
+
+                        </div>
+                        {{clusters}}
+                        </div>
+                        <br>
+                    </div>  
+                    <center>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </center>
+                </form>
+                
+                <!-- <a href="\list1">List</a> <br> -->
+            <!-- <div class="modal-footer"> -->
+              <!-- <button type="button" class="btn btn-default" data-dismiss="modal">Close</button> -->
+            <!-- </div> --> 
+          </div>
+        </div>
+        </div>
+      </div>
+
+
+{% endblock %}
