@@ -11,11 +11,14 @@
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
-  
-    
-
 
     <script src="static/dsembler.js"></script>
+
+    <!-- Fonts -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap');
+    </style> 
 
     <!-- Title -->
     <title>Dsembler</title>
@@ -44,8 +47,7 @@
     </header>
 
     <div class="container-sm"><br>
-        <h1>Dsembler</h1>
-        <h4>DNA Assembly Designer</h4>
+        <h1 style="font-family:'Montserrat', sans-serif;">Dsembler ~ DNA Assembly Designer</h1>
         <hr>
         <div class="row align-items-center justify-content-center"></div>
         <div class="col-md-12">
@@ -66,7 +68,7 @@
             <form action = "{{ url_for('addrec') }}" method = "POST">
                
                 <div class="form-group">
-                    <h6>Gene Sequence:</h6>
+                    <h6 class = "display-6" style="font-family: 'Poppins', sans-serif;">Gene Sequence:</p>
                     <textarea name="gene_seq" class="form-control" id="inputGeneSeq" placeholder="Enter Gene Sequence"> </textarea>
                 </div>
 
@@ -137,7 +139,6 @@
         <a href="{{ url_for('index') }}"><button class='btn btn-secondary'>Refresh</button></a>
         {% if user %}
                 <center>
-                    {{ user }}
                     <a href="/return-excel-file/" target="blank"><button class='btn btn-info btn-lg'>Excel File</button></a>
                     <a href="/return-fasta-files/" target="blank"><button class='btn btn-info btn-lg'>FASTA File</button></a>
                 </center>

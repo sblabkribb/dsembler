@@ -14,137 +14,186 @@ class TypeError(Exception):
 
 class DnaAssembly:
 
-    # Reading fasta file to give the DNA sequence and adding 'N' if the DNA sequence is not exactly divisible by 3
-    def read_fasta(self, data):
-        dna_seq = SeqIO.parse(data, "fasta")
+    # Reading fasta file to give the DNA sequence 
+    # input FASTA file
+    def read_fasta(self, file): 
+
+        dna_seq = SeqIO.parse(file, "fasta")
+        
         for seq_record in dna_seq:
-            seq = str(seq_record.seq).upper()
-            len_data = len(seq)
-            if len_data / 3 != 0:
-                seq += 'N'
+            seq = str(seq_record.seq).upper() # ensuring all data is capitalized for uniformity
+        # returns string
         return seq
 
+
     # splicing into oligomers
-    def oligomer_splice(self, data, oligomer_size, overlap_size):
-        oligomer_step = oligomer_size - overlap_size
-        dna_list = []
-        for start_pos in range(0, len(data), oligomer_step):
-            data_to_put = data[start_pos:start_pos+oligomer_step]
-            if data_to_put:
-                dna_list.append(data_to_put)
-        return dna_list
+    # input gene sequence (str), target oligomer size(int), and target overlap size(int)
+    def oligomer_splice(self, gene_seq, oligomer_size, overlap_size): 
+        global rough_oligo_size
+
+        rough_oligo_size = oligomer_size - overlap_size # calculates the size of oligomers without overlaps
+        rough_oligo_list = []
+
+        for start_pos in range(0, len(gene_seq), rough_oligo_size):
+            rough_oligo = gene_seq[start_pos : start_pos + rough_oligo_size]
+
+            if rough_oligo:
+                rough_oligo_list.append(rough_oligo)
+        # returns list of oligomer sequences without overlaps
+        return rough_oligo_list
+
 
     # generate all possible oligomers within a given overlap range
-    def possible_oligomers(self, gene_seq, data, oligomer_size, overlap_size):
+    # input gene sequence (str), rough oligomers (list), target oligomer size (int), and target overlap size (int)
+    def possible_oligomers(self, gene_seq, rough_oligo_list, oligomer_size, overlap_size):
+
         list_of_oligomers,overlap_length = [], []
-        overlap_region = oligomer_size - overlap_size
-        low_overlap = int(overlap_size - (overlap_size/4))
-        high_overlap = overlap_region + 1
-        seq = gene_seq[overlap_region:]
-        for i in range(len(data) - 1):
+
+        low_overlap = int(overlap_size - (overlap_size/4)) # calculates the shortest possible overlap length
+        high_overlap = rough_oligo_size + 1 # calculates the longest possible overlap length
+        seq = gene_seq[rough_oligo_size:]
+
+        for i in range(len(rough_oligo_list) - 1):
             possible_overlaps, possible_overlaps_len,= [], []
+
             for overlap in range(low_overlap, high_overlap):
                 overlap_seq = seq[:overlap]
-                overlap_len = overlap
-                oligomer = data[i] + overlap_seq
+                oligomer = rough_oligo_list[i] + overlap_seq
                 possible_overlaps.append(oligomer)
-                possible_overlaps_len.append(overlap_len)
+                possible_overlaps_len.append(overlap)
+
             list_of_oligomers.append(possible_overlaps)
             overlap_length.append(possible_overlaps_len)
-            seq = seq[overlap_region:]
+            seq = seq[rough_oligo_size:]
+        # returns two separate lists of lists that 1) contain oligomers with varying overlap lengths 2) their respective overlap lengths
         return list_of_oligomers, overlap_length
 
     # function for generating alternative complementary sequences
+    # input a list of sequences
     def complement_oli(self, data):
+
         comp_list = []
+
         for i in data:
-            if data.index(i) % 2 != 0:
+
+            if data.index(i) % 2 != 0: # allow alternate sequences to be complementary 
                 i = str(Seq.Seq(i).complement())
                 comp_list.append(i)
             else:
                 comp_list.append(i)
+        # returns a list containing the complementary sequences in order
         return comp_list
 
+
     # returns value in list closest to n
+    # input a list and a number you want to check
     def closest(self, data, n):
+        # returns int
         return data[min(range(len(data)), key=lambda i: abs(data[i] - n))]
 
+
     # selecting oligomers that fall in target requirements (Melting temp, GC content, overlap length, GC clamp)
+    # input the list of all possible oligomers, and corresponding overlap lengths, target melting temp (int), temperature range (int), o
     def optimal_oligomers(self, list_of_oligomers, optimal_temp, temp_range, overlap_length):
-        low_tm = optimal_temp - temp_range
-        high_tm = optimal_temp + temp_range
-        low_gc = 20
-        high_gc = 80
-        optimal_oligomers, optimal_overlap_len = [], []
-        for c in range(len(list_of_oligomers)):
-            if c % 2 == 0:
-                f = [list_of_oligomers[c].index(i) for i in list_of_oligomers[c] if i[-1] == 'T']
-                if len(f) != len(list_of_oligomers[c]):
-                    for ele in sorted(f, reverse=True):
-                        del list_of_oligomers[c][ele]
-                        del overlap_length[c][ele]
+
+        low_tm = optimal_temp - temp_range # lower melting temperature
+        high_tm = optimal_temp + temp_range # higher melting temperature
+        low_gc = 20 # lower gc content limit
+        high_gc = 80 # higher gc content limit
+
+        optimal_oligomers, optimal_overlap_len = [], [] 
+
+        for oligo_index in range(len(list_of_oligomers)):
+            # removes oligomers if there is T at 3' (alternate sequences will be complementary in the output)
+            if oligo_index % 2 == 0: 
+                t_3_oligo_index = [list_of_oligomers[oligo_index].index(oligo) for oligo in list_of_oligomers[oligo_index] if oligo[-1] == 'T']
+                if len(t_3_oligo_index) != len(list_of_oligomers[oligo_index]):
+                    for ele in sorted(t_3_oligo_index, reverse=True):
+                        del list_of_oligomers[oligo_index][ele]
+                        del overlap_length[oligo_index][ele]
                 else:
-                    for ele in sorted(f[1:], reverse=True):
-                        del list_of_oligomers[c][ele]
-                        del overlap_length[c][ele]
+                    for ele in sorted(t_3_oligo_index[1:], reverse=True):
+                        del list_of_oligomers[oligo_index][ele]
+                        del overlap_length[oligo_index][ele]
             else:
-                while list_of_oligomers[c][0][0] == 'A':
-                    list_of_oligomers[c][:] = [i[1:] for i in list_of_oligomers[c]]
-                    overlap_length[c - 1][:] = [number - 1 for number in overlap_length[c - 1]]
+                while list_of_oligomers[oligo_index][0][0] == 'A':
+                    list_of_oligomers[oligo_index][:] = [i[1:] for i in list_of_oligomers[oligo_index]]
+                    overlap_length[oligo_index - 1][:] = [number - 1 for number in overlap_length[oligo_index - 1]]
+                    
         comp_list = []
-        for a in list_of_oligomers:
-            comp_list.append(self.complement_oli(a))
-        for i in range(len(list_of_oligomers)):
-            tm, oli, over_len = [], [], []
-            for x in range(len(list_of_oligomers[i])):
-                overlap = comp_list[i][x][-overlap_length[i][x]:]
-                melting_temp = round(mt.Tm_NN(overlap, nn_table=mt.DNA_NN3), 2)
+
+        # generating alternate complementary sequences to select based on melting temperature and GC
+        for oligomer_pool in list_of_oligomers:
+            comp_list.append(self.complement_oli(oligomer_pool))
+            
+        for oligo_num in range(len(list_of_oligomers)):
+            tm, oligo, over_len = [], [], []
+            for rough_oligo_index in range(len(list_of_oligomers[oligo_num])):
+                overlap = comp_list[oligo_num][rough_oligo_index][-overlap_length[oligo_num][rough_oligo_index]:] # extract overlap sequence
+                melting_temp = round(mt.Tm_NN(overlap, nn_table=mt.DNA_NN3), 2) # check melting temperature based on Nearest Neighbour equation
                 gc = GC(overlap)
-                tm.append(melting_temp)
-                if low_gc <= gc <= high_gc and low_tm <= melting_temp <= high_tm:
-                    oli.append(list_of_oligomers[i][x])
-                    over_len.append(overlap_length[i][x])
-            if not oli:
-                if all(melt >= high_tm for melt in tm) == True:
-                    v = self.closest(tm, high_tm)
+                tm.append(melting_temp) # to keep track of all melting temperatures of overlaps
+                if low_gc <= gc <= high_gc and low_tm <= melting_temp <= high_tm: 
+                    oligo.append(list_of_oligomers[oligo_num][rough_oligo_index])
+                    over_len.append(overlap_length[oligo_num][rough_oligo_index])
+            if not oligo: # if the list 'oligo' is empty
+                # chooses the overlap with the closest melting temperature to the user's input
+                if all(temp >= high_tm for temp in tm) == True: 
+                    next_best_oligo = self.closest(tm, high_tm)
                 else:
-                    v = self.closest(tm, low_tm)
-                oli.append(list_of_oligomers[i][tm.index(v)])
-                over_len.append(overlap_length[i][tm.index(v)])
-            optimal_oligomers.append(oli)
+                    next_best_oligo = self.closest(tm, low_tm)
+                oligo.append(list_of_oligomers[oligo_num][tm.index(next_best_oligo)])
+                over_len.append(overlap_length[oligo_num][tm.index(next_best_oligo)])
+            optimal_oligomers.append(oligo)
             optimal_overlap_len.append(over_len)
+        # returns 2 list of lists with all the oligomers that fit/ almost fit the criteria specified by user
         return optimal_oligomers, optimal_overlap_len
 
+
     # selects the smallest oligomer from the possible optimal oligomers (cost effective)
+    # input the list of lists of optimal oligomers and corresponding overlap lengths
     def final_oligomers(self, optimal_oligomers, optimal_overlap_len):
-        final_oligomers = []
-        final_overlaps = []
-        for i in range(len(optimal_oligomers)):
-            smallest_ovr = min(optimal_overlap_len[i])
-            smallest_oli = optimal_oligomers[i][optimal_overlap_len[i].index(smallest_ovr)]
+
+        final_oligomers, final_overlap_len = [], []
+
+        for oligomer_index in range(len(optimal_oligomers)):
+            smallest_ovr = min(optimal_overlap_len[oligomer_index])
+            smallest_oli = optimal_oligomers[oligomer_index][optimal_overlap_len[oligomer_index].index(smallest_ovr)]
             final_oligomers.append(smallest_oli)
-            final_overlaps.append(smallest_ovr)
-        return final_oligomers, final_overlaps
+            final_overlap_len.append(smallest_ovr)
+        # returns 2 lists that contain the oligomer sequences and overlap lengths
+        return final_oligomers, final_overlap_len
+
 
     # generating single sequence with all overlap regions
-    def overlap_list(self, data, overlap_len):
+    # input the list of oligomers and their respective overlap length
+    def overlap_list(self, oligomer_list, overlap_length):
+        
         overlaps = []
-        for i in data:
-            overlap = overlap_len[data.index(i)]
-            data_to_put = i[-overlap:]
-            overlaps.append(data_to_put)
+        
+        for oligomer in oligomer_list:
+            overlap_len = overlap_length[oligomer_list.index(oligomer)]
+            overlap = oligomer[-overlap_len:]
+            overlaps.append(overlap)
+        # returns a list of overlap sequences
         return overlaps
 
+
     # check overlap alignment of a given list
-    def overlap_alignment(self, data):
-        k = []
-        for a, b in itertools.combinations(data, 2):
+    # input a list of sequences
+    def overlap_alignment(self, sequences):
+
+        alignment_index = []
+        
+        for a, b in itertools.combinations(sequences, 2):
             align = aligner.align(a, b)
             align_ratio = align.score / max(len(a), len(b))
             if align_ratio > 0.7:
-                index = [data.index(a), data.index(b)]
-                k.append(index)
-        return k
+                index = [sequences.index(a), sequences.index(b)]
+                alignment_index.append(index)
+        # return a list of list containing the indexes of high levels of alignments between two sequences
+        return alignment_index
+
 
     # make clusters based on alignment score
     def make_clusters(self, data, overlap, cluster_size, cluster_range):
@@ -185,137 +234,103 @@ class DnaAssembly:
             clusters = [data]
         return clusters
 
+
     # orientates sequences in 5 to 3 format
-    def seq_orientation(self, data):
+    # input a list of sequences
+    def seq_orientation(self, sequences):
+
         five_to_three = []
-        for i in data:
-            if data.index(i) % 2 != 0:
-                j = str(Seq.Seq(i).reverse_complement())
-                five_to_three.append(j)
+        
+        for sequence in sequences:
+            if sequences.index(sequence) % 2 != 0:
+                rc_sequence = str(Seq.Seq(sequence).reverse_complement())
+                five_to_three.append(rc_sequence)
             else:
-                five_to_three.append(i)
+                five_to_three.append(sequence)
+        # list of oligomers with the right orientation
         return five_to_three
 
-    def complementary_clusters(self, data, overlap, cluster_size, cluster_range):
+
+    # make clusters based on alignment score
+    # input list of oligomers and their respective overlap lengths; the (int) user input of cluster size and cluster range
+    def complementary_clusters(self, oligomers, overlap_len, cluster_size, cluster_range):
+        
         num = []
-        l_cluster = cluster_size - cluster_range
-        h_cluster = cluster_size + cluster_range + 1
-        for i in range(l_cluster, h_cluster,2):
-            num.append(i)
-        if not len(data) in range(cluster_size) :
-            comp_list, five_to_three = self.complement_oli(data), self.seq_orientation(data)
-            clusters = []
-            cluster_ovr = []
-            cluster_five_two_three = []
-            h = data
-            o = overlap
-            while h:
-                f = []
-                for i in num:
-                    d = self.overlap_alignment(self.overlap_list(h[:i], o[:i]))
-                    f.append(d)
-                    if f.count(f[0]) == len(f):
-                        h = h[cluster_size:]
-                        r = o[:cluster_size]
-                        o = o[cluster_size:]
-                        k = comp_list[:cluster_size]
-                        b = five_to_three[:cluster_size]
+
+        low_cluster = cluster_size - cluster_range
+        high_cluster = cluster_size + cluster_range + 1
+        
+        for cluster_len in range(low_cluster, high_cluster, 2):
+            num.append(cluster_len)
+        
+        if not len(oligomers) in range(cluster_size) :
+        
+            comp_list, five_to_three = self.complement_oli(oligomers), self.seq_orientation(oligomers)
+            
+            clusters, comp_clusters, cluster_ovr, cluster_five_two_three = [], [], [], []
+
+            oligos = oligomers
+            overlap = overlap_len
+        
+            while oligos:
+                alignments = []
+
+                for cluster_length in num:
+                    alignment = self.overlap_alignment(self.overlap_list(oligos[:cluster_length], overlap[:cluster_length]))
+                    alignments.append(alignment)
+
+                    if alignments.count(alignments[0]) == len(alignments):
+                        oligomers = oligos[:cluster_size]
+                        overlap_len = overlap[:cluster_size]
+                        
+                        oligos = oligos[cluster_size:]
+                        overlap = overlap[cluster_size:]
+
+                        complementary_cluster = comp_list[:cluster_size]
+                        final_cluster = five_to_three[:cluster_size]
                         comp_list = comp_list[cluster_size:]
                         five_to_three = five_to_three[cluster_size:]
-                        clusters.append(k)
-                        cluster_ovr.append(r)
-                        cluster_five_two_three.append(b)
-                    elif any(f.count(element) > 1 for element in f):
-                        t = min(f, key=lambda x: len(x))
-                        if f.count(t) > 1:
-                            c = [num[index] for index, element in enumerate(f) if element == t]
-                            p = num[min(range(len(c)), key=lambda i: abs(c[i] - cluster_size))]
+
+                        clusters.append(oligomers)
+                        comp_clusters.append(complementary_cluster)
+                        cluster_ovr.append(overlap_len)
+                        cluster_five_two_three.append(final_cluster)
+
+                    elif any(alignments.count(element) > 1 for element in alignments):
+                        min_align = min(alignments, key=lambda x: len(x))
+                        if alignments.count(min_align) > 1:
+                            c = [num[index] for index, element in enumerate(alignments) if element == min_align]
+                            cluster_dim = num[min(range(len(c)), key=lambda cluster_length: abs(c[cluster_length] - cluster_size))]
                         else:
-                            p = num[f.index(t)]
-                        h = h[p:]
-                        r = o[:p]
-                        o = o[p:]
-                        k = comp_list[:p]
-                        b = five_to_three[:p]
-                        comp_list = comp_list[p:]
-                        five_to_three = five_to_three[p:]
-                        cluster_ovr.append(r)
-                        clusters.append(k)
-                        cluster_five_two_three.append(b)
+                            cluster_dim = num[alignments.index(min_align)]
+
+                        oligomers = oligos[:cluster_dim]
+                        overlap_len = overlap[:cluster_dim]
+
+                        oligos = oligos[cluster_dim:]
+                        overlap = overlap[cluster_dim:]
+
+                        complementary_cluster = comp_list[:cluster_dim]
+                        final_cluster = five_to_three[:cluster_dim]
+                        comp_list = comp_list[cluster_dim:]
+                        five_to_three = five_to_three[cluster_dim:]
+
+                        clusters.append(oligomers)
+                        cluster_ovr.append(overlap_len)
+                        comp_clusters.append(complementary_cluster)
+                        cluster_five_two_three.append(final_cluster)
+        # if the cluster size inputted is larger than the final cluster
         else:
-            clusters = [data]
+            clusters = [oligomers]
+            comp_clusters = [self.complement_oli(oligomers)]
             cluster_ovr = [overlap]
-            cluster_five_two_three = [self.seq_orientation(data)]
-        return clusters, cluster_ovr, cluster_five_two_three
+            cluster_five_two_three = [self.seq_orientation(oligomers)]
 
-    # Visualizing DNA sequences
-    def output_webpage(self, data, overlap):
-        spaces = []
-        overshot = []
-        z = 0
-        for j in range(len(overlap)):
-            if j == 0:
-                t = len(data[j]) - overlap[j]
-            else:
-                t = len(data[j]) - overlap[(j - 1)] - overlap[j]
-            if t < 0:
-                x = 0 - t
-                t = 0
-                z += 1
-            else:
-                x = 0
-                z += 0
-            spaces.append(t)
-            overshot.append(x)
-        even, odd_space, odd_overshoot = [], [], []
-        odd, even_space, even_overshoot = [], [], []
-        for j in range(len(data)):
-            if j % 2 != 0:
-                odd.append(data[j])
-                even_space.append(spaces[j])
-                even_overshoot.append(overshot[j])
-            else:
-                even.append(data[j])
-                odd_space.append(spaces[j])
-                odd_overshoot.append(overshot[j])
-        forward_seq = even[0]
-        reverse_seq = ""
-        for w in range(len(even)):
-            if w != range(len(even))[-1]:
-                if even_overshoot[w] == 0:
-                    forward_seq = forward_seq + (" " * even_space[w]) + even[w + 1]
-                else:
-                    b = even[w][-even_overshoot[w]:]
-                    forward_seq = forward_seq[:-even_overshoot[w]] + b.swapcase() + even[w + 1][even_overshoot[w]:]
-            else:
-                forward_seq = forward_seq + even[w]
-        for v in range(len(odd)):
-            if odd_overshoot[v] == 0:
-                reverse_seq = (reverse_seq + " " * odd_space[v] + odd[v])
-            else:
-                c = odd[v - 1][-odd_overshoot[v]:]
-                reverse_seq = (reverse_seq[:-odd_overshoot[v]] + c.swapcase() + odd[v][odd_overshoot[v]:])
-        return forward_seq, reverse_seq, z
+        # returns three list of lists containing oligomers and their respective overlap lengths in appropriate clusters sizes
+        return comp_clusters, cluster_ovr, cluster_five_two_three
 
-    # finding repeat sequences
-    # https://stackoverflow.com/questions/4664850/how-to-find-all-occurrences-of-a-substring
-    def repeat_seq(self, data):
-        repeats = 10
-        x = []
-        seq_no = len(data) - (repeats - 1)
-        seq_list = []
-        for j in range(seq_no):
-            start_pos = j
-            end_pos = j + repeats
-            b = data[start_pos:end_pos]
-            seq_list.append(b)
-        s = [item for item, count in collections.Counter(seq_list).items() if count > 1]
-        for repeat in s:
-            matches = re.finditer(repeat, data)
-            matches_position = [match.start() for match in matches]
-            x.append(matches_position)
-        return x
-
+    
+    # generates scores and suggests possible areas of error for each oligomer
     def overlap_score(self, data, clusters, cluster_5_3, overlap, optimal_temp, temp_range):
         score, fault, repeats, repeat_seq, repeat_position = [], [], [], [], []
         for i in range(len(data)):
@@ -380,3 +395,73 @@ class DnaAssembly:
                     score[cluster][oligomer] += 1
                     fault[cluster][oligomer] += "G"
         return score, fault, repeat_position
+
+
+ # finding repeat sequences
+    # https://stackoverflow.com/questions/4664850/how-to-find-all-occurrences-of-a-substring
+    def repeat_seq(self, data):
+        repeats = 10
+        x = []
+        seq_no = len(data) - (repeats - 1)
+        seq_list = []
+        for j in range(seq_no):
+            start_pos = j
+            end_pos = j + repeats
+            b = data[start_pos:end_pos]
+            seq_list.append(b)
+        s = [item for item, count in collections.Counter(seq_list).items() if count > 1]
+        for repeat in s:
+            matches = re.finditer(repeat, data)
+            matches_position = [match.start() for match in matches]
+            x.append(matches_position)
+        return x
+
+
+
+# def output_webpage(self, data, overlap):
+    #     spaces = []
+    #     overshot = []
+    #     z = 0
+    #     for j in range(len(overlap)):
+    #         if j == 0:
+    #             t = len(data[j]) - overlap[j]
+    #         else:
+    #             t = len(data[j]) - overlap[(j - 1)] - overlap[j]
+    #         if t < 0:
+    #             x = 0 - t
+    #             t = 0
+    #             z += 1
+    #         else:
+    #             x = 0
+    #             z += 0
+    #         spaces.append(t)
+    #         overshot.append(x)
+    #     even, odd_space, odd_overshoot = [], [], []
+    #     odd, even_space, even_overshoot = [], [], []
+    #     for j in range(len(data)):
+    #         if j % 2 != 0:
+    #             odd.append(data[j])
+    #             even_space.append(spaces[j])
+    #             even_overshoot.append(overshot[j])
+    #         else:
+    #             even.append(data[j])
+    #             odd_space.append(spaces[j])
+    #             odd_overshoot.append(overshot[j])
+    #     forward_seq = even[0]
+    #     reverse_seq = ""
+    #     for w in range(len(even)):
+    #         if w != range(len(even))[-1]:
+    #             if even_overshoot[w] == 0:
+    #                 forward_seq = forward_seq + (" " * even_space[w]) + even[w + 1]
+    #             else:
+    #                 b = even[w][-even_overshoot[w]:]
+    #                 forward_seq = forward_seq[:-even_overshoot[w]] + b.swapcase() + even[w + 1][even_overshoot[w]:]
+    #         else:
+    #             forward_seq = forward_seq + even[w]
+    #     for v in range(len(odd)):
+    #         if odd_overshoot[v] == 0:
+    #             reverse_seq = (reverse_seq + " " * odd_space[v] + odd[v])
+    #         else:
+    #             c = odd[v - 1][-odd_overshoot[v]:]
+    #             reverse_seq = (reverse_seq[:-odd_overshoot[v]] + c.swapcase() + odd[v][odd_overshoot[v]:])
+    #     return forward_seq, reverse_seq, z

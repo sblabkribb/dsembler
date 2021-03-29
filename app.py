@@ -17,10 +17,10 @@ print('Opened database successfully')
 # conn.execute("DROP TABLE IF EXISTS variables")
 # print("table deleted")
 
-conn.execute('CREATE TABLE IF NOT EXISTS variables (id INTEGER PRIMARY KEY AUTOINCREMENT, user TEXT, gene_seq TEXT, oligomer_size INTEGER, overlap_size INTEGER, melting_temp DECIMAL(3,2), temp_range DECIMAL(1, 2), cluster_size INTEGER, cluster_range INTEGER)')
+conn.execute('CREATE TABLE IF NOT EXISTS variables (id INTEGER PRIMARY KEY AUTOINCREMENT, user TEXT, short_gene_seq TEXT, gene_seq TEXT, oligomer_size INTEGER, overlap_size INTEGER, melting_temp DECIMAL(3,2), temp_range DECIMAL(1, 2), cluster_size INTEGER, cluster_range INTEGER)')
 print('Table created successfully')
 
-conn.execute('CREATE TABLE IF NOT EXISTS members (member TEXT, name TEXT)')
+conn.execute('CREATE TABLE IF NOT EXISTS members (member TEXT PRIMARY KEY, name TEXT)')
 print('Table created successfully')
 conn.close()
 
@@ -49,11 +49,12 @@ def index():
 
 @app.route('/addrec', methods = ['POST', 'GET'])
 def addrec():
-    global user, gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range
+    global user, short_gene_seq, gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range
     if request.method == 'POST':
         user_option = request.form.get('membercheckbox')
         timestamp = time.time_ns()
-        gene_seq = request.form['gene_seq']
+        gene_seq = str(request.form['gene_seq']).strip()
+        short_gene_seq = gene_seq[:10]+"..."
         oligomer_size = int(request.form['oligomer_size'])
         overlap_size = int(request.form['overlap_size'])
         melting_temp = int(request.form['melting_temp'])
@@ -69,10 +70,10 @@ def addrec():
                 flash('Success', 'success')
         else:
             user = f'Guest_{timestamp}'
-        clusters = dad.design_oligomers(gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range, user)
+        # clusters = dad.design_oligomers(gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range, user)
         with sqlite3.connect(db_path) as con:
             cur = con.cursor()
-            cur.execute("INSERT INTO variables (user, gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range) VALUES (?,?,?,?,?,?,?,?)",(user, gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range) )
+            cur.execute("INSERT INTO variables (user, short_gene_seq, gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range) VALUES (?,?,?,?,?,?,?,?,?)",(user, short_gene_seq, gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range) )
             
             con.commit()
             msg = "Record successfully added"
@@ -111,7 +112,8 @@ def prev_results(record_id):
     cluster_range = data["cluster_range"]
 
     clusters = dad.design_oligomers(gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range, user)
-    return clusters
+    
+    return 
 
 
 @app.route('/return-excel-file/')
@@ -134,13 +136,13 @@ def signup():
                 cur = con.cursor()
                 cur.execute("INSERT INTO members (member, name) VALUES (?, ?)",(member, name))
                 con.commit()
-                msg = "Record successfully added"
+                flash("User successfully added", 'success')
         except:
             con.rollback()
-            msg = "error in insert operation"
+            flash("User exists already", 'danger')
         
         finally:
-            return render_template("result.html", msg = msg)
+            return redirect(url_for('index'))
             con.close()
     else:
         return redirect(url_for('index') + '#signUpModal')
@@ -171,7 +173,8 @@ def logged_user():
         cur.execute("select * from variables where user = ?", [member])
 
         rows = cur.fetchall()
-    return render_template("user.html", rows=rows)
+    return render_template("form.html", rows=rows)
+    
 
 
 @app.route('/logout')
