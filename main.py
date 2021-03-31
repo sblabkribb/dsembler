@@ -12,12 +12,12 @@ import tempfile
 da = da()
 class DnaAssemblyDesigner:
     def design_oligomers(self, gene_seq, oligomer_size, overlap_size, optimal_temp, temp_range, cluster_size, cluster_range, user):
+        
         rough_oligomer = da.oligomer_splice(gene_seq, oligomer_size, overlap_size)
         list_of_oligomers, overlap_length = da.possible_oligomers(gene_seq, rough_oligomer, oligomer_size, overlap_size)
         optimal_oligomers, optimal_overlap_len = da.optimal_oligomers(list_of_oligomers, optimal_temp, temp_range, overlap_length)
         final_oligomers, final_overlaps = da.final_oligomers(optimal_oligomers, optimal_overlap_len)
-        clusters, overlap_cluster, cluster_five_to_three = da.complementary_clusters(final_oligomers, final_overlaps, cluster_size, cluster_range)
-        clust = da.make_clusters(final_oligomers, final_overlaps, cluster_size, cluster_range)
+        clust, clusters, overlap_cluster, cluster_five_to_three = da.complementary_clusters(final_oligomers, final_overlaps, cluster_size, cluster_range)
 
         score, fault, repeats_position =da.overlap_score(clust, clusters, cluster_five_to_three, overlap_cluster, optimal_temp, temp_range)
         

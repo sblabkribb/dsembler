@@ -28,13 +28,13 @@
 
     <header class = "navbar navbar-expand-md navbar-dark bg-dark bd-navbar">
         <nav class = "container-sm flex-wrap flex-md-nowrap" aria-label="Main navigation">
-            <a class="navbar-brand p-0" href="/" aria-label="Dsembler"> Image </a>
+            <a class="navbar-brand p-0" href="/" aria-label="Dsembler"> Home </a>
           <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
               <span class="navbar-toggler-icon"> </span>
           </button>
           <div class="col-md-8 collapse navbar-collapse">
               <ul class="navbar-nav flex-row flex-wrap bd-navbar-nav pt-2 py-md-0">
-                  <li class="nav-item nav-link active" href="#"> Form </li>
+                  <li class="nav-item nav-link active"> Form </li></a>
                   <li class="nav-item nav-link" href="#"> Protocol </li>
                   <li class="nav-item nav-link" href="#"> Documentation </li>
               </ul>
@@ -46,8 +46,9 @@
         </nav>
     </header>
 
-    <div class="container-sm"><br>
-        <h1 style="font-family:'Montserrat', sans-serif;">Dsembler ~ DNA Assembly Designer</h1>
+    <div class="container-sm flex"><br>
+        <h1 style="font-family:'Montserrat', sans-serif;">Dsembler</h1>
+        <h4>DNA Assembly Designer</h4>
         <hr>
         <div class="row align-items-center justify-content-center"></div>
         <div class="col-md-12">
@@ -68,7 +69,7 @@
             <form action = "{{ url_for('addrec') }}" method = "POST">
                
                 <div class="form-group">
-                    <h6 class = "display-6" style="font-family: 'Poppins', sans-serif;">Gene Sequence:</p>
+                    <h6>Gene Sequence:</h6>
                     <textarea name="gene_seq" class="form-control" id="inputGeneSeq" placeholder="Enter Gene Sequence"> </textarea>
                 </div>
 
@@ -138,12 +139,84 @@
     <div class="container-sm"><br>
         <a href="{{ url_for('index') }}"><button class='btn btn-secondary'>Refresh</button></a>
         {% if user %}
-                <center>
-                    <a href="/return-excel-file/" target="blank"><button class='btn btn-info btn-lg'>Excel File</button></a>
-                    <a href="/return-fasta-files/" target="blank"><button class='btn btn-info btn-lg'>FASTA File</button></a>
-                </center>
+            <center>
+                <a href="/return-excel-file/" target="blank"><button class='btn btn-info btn-lg'>Excel File</button></a>
+                <a href="/return-fasta-files/" target="blank"><button class='btn btn-info btn-lg'>FASTA File</button></a>
+            </center>
         {% endif %}
     </div>
+
+    
+    {% if login == True %}
+
+            <div class="item-list-table">
+                
+                <div class="container-sm mb=3 mt-3">
+            
+                <table id="item-list-table" class="table table-bordered" >
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Target sequence</th>
+                            <th>Oligomer size</th>
+                            <th>Overlap size</th>
+                            <th>Optimal Melting Temp.</td>
+                            <th>+- (C)</th>
+                            <th>Oligomers per cluster</th>
+                            <th>+-</th>
+                        </tr>
+                    </thead>
+            
+                </div>
+                </div>
+            
+                <div class = "container-sm">
+                    {% if rows != None %}
+                        {% for row in rows %}
+                            <tr>
+                            <td><a href="{{url_for('prev_results', record_id = row['id']) }}" onclick='$("div[name$=divToShow]").toggle()'><input type="submit" name="edit_btn" value="+"rel="tooltip" class="btn btn-info"></a></td>
+                            <td>{{row["short_gene_seq"]}}</td>
+                            <td>{{row["oligomer_size"]}}</td>
+                            <td>{{row['overlap_size']}}</td>
+                            <td>{{row["melting_temp"]}}</td>
+                            <td>{{row["temp_range"]}}</td>
+                            <td>{{row["cluster_size"]}}</td>
+                            <td>{{row["cluster_range"]}}</td>
+                            </tr>
+                        {% endfor %}
+                    {% endif %}
+            </table>
+            <a href="{{ url_for('logout')}}"> Log Out </a>
+            <div id="resultsModal" class="modal fade" role="dialog">
+                <div class="modal-dialog modal-dialog-centered">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Sign Up</h4> 
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form action="/signup/" method="POST">
+                            <div class = "container-sm">
+                            <div class="form-group">
+                                <div class="form-group"> 
+                                <h6>Name</h6>
+                                <input type="text" name="name" class="form-control" id="inputMemberName" placeholder="Enter your Name">
+                                </div>
+                                <h6>Username</h6>
+                                <input type="text" name="username" class="form-control" id="inputMemberID" placeholder="Enter your user ID">
+                                </div>
+                                <br>
+                            </div>
+                            <center>
+                                <button type="submit" class="btn btn-primary">Submit</button>
+                            </center>
+                        </form>
+                  </div>
+                </div>
+                </div>
+              </div>
+    {% endif %}
+      
       
     <div id="signUpModal" class="modal fade" role="dialog">
         <div class="modal-dialog modal-dialog-centered">
@@ -169,10 +242,6 @@
                         <button type="submit" class="btn btn-primary">Submit</button>
                     </center>
                 </form>
-                <!-- <a href="\list1">List</a> <br> -->
-            <!-- <div class="modal-footer"> -->
-              <!-- <button type="button" class="btn btn-default" data-dismiss="modal">Close</button> -->
-            <!-- </div> -->
           </div>
         </div>
         </div>
@@ -199,15 +268,11 @@
                         <button type="submit" class="btn btn-primary">Submit</button>
                     </center>
                 </form>
-                
-                <!-- <a href="\list1">List</a> <br> -->
-            <!-- <div class="modal-footer"> -->
-              <!-- <button type="button" class="btn btn-default" data-dismiss="modal">Close</button> -->
-            <!-- </div> --> 
           </div>
         </div>
         </div>
       </div>
 
-
+      
+    
 {% endblock content %}

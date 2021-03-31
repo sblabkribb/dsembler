@@ -1,18 +1,8 @@
-# Dsembler
-DNA assembly designer
+To build and run the docker image:
 
-## INSTALL
-git clone git@github.com:sblabkribb/dsembler.git
+```
+$ docker build dsembler -t dsembler
 
-## Pre-requisit
-docker, docker-compose, mongoDB
+$ docker run --publish 5000:5000 dsembler
 
-## start
-  - GO to the dsembler directory
-  - docker-compose up -d
-  - docker exec -it dsembler /bin/bash
-  - python dsembler.py
-
-
-## stop
-docker-compose down
+```

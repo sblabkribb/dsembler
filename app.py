@@ -2,7 +2,7 @@ from flask import Flask, render_template, url_for, flash, redirect, request, sen
 from flask_bootstrap import Bootstrap
 from flask_table import Table, Col, LinkCol
 import sqlite3
-from dp import DnaAssemblyDesigner as dad
+from main import DnaAssemblyDesigner as dad
 import os.path
 import time
 
@@ -14,7 +14,7 @@ app.config['SECRET_KEY'] = '5791628bb0b13ce0c676dfde280ba245'
 conn = sqlite3.connect('database.db')
 print('Opened database successfully')
 
-# conn.execute("DROP TABLE IF EXISTS variables")
+# conn.execute("DROP TABLE IF EXISTS members")
 # print("table deleted")
 
 conn.execute('CREATE TABLE IF NOT EXISTS variables (id INTEGER PRIMARY KEY AUTOINCREMENT, user TEXT, short_gene_seq TEXT, gene_seq TEXT, oligomer_size INTEGER, overlap_size INTEGER, melting_temp DECIMAL(3,2), temp_range DECIMAL(1, 2), cluster_size INTEGER, cluster_range INTEGER)')
@@ -57,8 +57,8 @@ def addrec():
         short_gene_seq = gene_seq[:10]+"..."
         oligomer_size = int(request.form['oligomer_size'])
         overlap_size = int(request.form['overlap_size'])
-        melting_temp = int(request.form['melting_temp'])
-        temp_range = int(request.form['temp_range'])
+        melting_temp = float(request.form['melting_temp'])
+        temp_range = float(request.form['temp_range'])
         cluster_size = int(request.form['cluster_size'])
         cluster_range = int(request.form['cluster_range'])
         if user_option == "y":
@@ -70,29 +70,24 @@ def addrec():
                 flash('Success', 'success')
         else:
             user = f'Guest_{timestamp}'
-        # clusters = dad.design_oligomers(gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range, user)
+        
+        clusters = dad.design_oligomers(gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range, user)
+        
         with sqlite3.connect(db_path) as con:
             cur = con.cursor()
             cur.execute("INSERT INTO variables (user, short_gene_seq, gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range) VALUES (?,?,?,?,?,?,?,?,?)",(user, short_gene_seq, gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range) )
             
             con.commit()
-            msg = "Record successfully added"
+            if user_option == "y":
+                flash("Record successfully added", "success")
     else:
         clusters = None
     return render_template("form.html", user=user)
         
 
-@app.route('/results/', methods = ['POST', 'GET'])
-def results():
-    if request.method == 'POST':
-        clusters = dad.design_oligomers(gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range, user)
-    else:
-        clusters = None
-    return render_template('form.html', clusters = clusters)
-
-
 @app.route('/prev-results/<int:record_id>')
 def prev_results(record_id):
+    global user
     record_id = str(record_id)
     con = sqlite3.connect(db_path)
     con.row_factory=sqlite3.Row
@@ -112,9 +107,7 @@ def prev_results(record_id):
     cluster_range = data["cluster_range"]
 
     clusters = dad.design_oligomers(gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range, user)
-    
-    return 
-
+    return render_template("user.html", clusters=clusters)
 
 @app.route('/return-excel-file/')
 def excel_file():
@@ -159,12 +152,13 @@ def login():
             redirect(url_for('index') + '#loginModal')
         else:
             flash(f"Logged in as {member}", 'success')
-            return logged_user()
+            session['username'] = member
+            return logged_user(member)
         return redirect(url_for('index') + '#loginModal')
 
 
-@app.route('/user/', methods=["POST", "GET"])
-def logged_user():
+@app.route('/user/<member>', methods=["POST", "GET"])
+def logged_user(member):
     if request.method == "POST":
         con = sqlite3.connect(db_path)
         con.row_factory=sqlite3.Row
@@ -173,8 +167,7 @@ def logged_user():
         cur.execute("select * from variables where user = ?", [member])
 
         rows = cur.fetchall()
-    return render_template("form.html", rows=rows)
-    
+    return render_template("form.html", rows=rows, login=True)
 
 
 @app.route('/logout')

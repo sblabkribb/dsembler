@@ -323,11 +323,11 @@ class DnaAssembly:
         else:
             clusters = [oligomers]
             comp_clusters = [self.complement_oli(oligomers)]
-            cluster_ovr = [overlap]
+            cluster_ovr = [overlap_len]
             cluster_five_two_three = [self.seq_orientation(oligomers)]
 
         # returns three list of lists containing oligomers and their respective overlap lengths in appropriate clusters sizes
-        return comp_clusters, cluster_ovr, cluster_five_two_three
+        return clusters, comp_clusters, cluster_ovr, cluster_five_two_three
 
     
     # generates scores and suggests possible areas of error for each oligomer
