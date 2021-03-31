@@ -3,16 +3,17 @@
 DNA Assembly Designer is an easy to use web program for assembling short genomes that selects the best possible oligomer sequences based on the users' target parameters. 
 
 The outputs inclue a textfile that shows the appropriate orientation of the oligomers, an excel file that includes all the sequences in 5' to 3' format as well as a scoring system, and a zip file containing fasta files of all the oligomers. The algorithm is outlined below figure:
+
 ![Schematic](/images/workflow.png "Algorithm Workflow")
 
 > Note: Melting Temperature of overlaps are calculated based on the Nearest Neighbour Equation and the Sugimoto (1996) thermodynamic table.
 To build and run the docker image:
 
+## Installation
 ```
 $ docker build dsembler -t dsembler
 
 $ docker run --publish 5000:5000 dsembler
-
 ```
 
 ## Python 3.8.5
@@ -55,11 +56,11 @@ Two buttons appear on the same page once the target parameters are submitted: on
 | ------------- |-------------| -------------| -------------| -------------| -------------| -------------| ------------- |
 
 Score of each oligomer's overlap:
-    1. **H**: Overlap melting temperature is higher than the specified target temperature _(score = overlap_temp - temp_range_high)_
-    2. **L**: Overlap melting temperature is higher than the specified target temperature _(score = temp_range_low - overlap_temp)_
-    3. **R**: There are repeats (10bp) within oligomer overlaps within each cluster _(score = 10)_
-    4. **T**: The overlap of each oligomer is not the smallest/largest within the possible oligomer range, and there is 'T' at the 3' end _(score = 1)_
-    5. **G**: The last 5 bp of 3' end have 3 consecutive 'G', 'C', or a combination of both. _(score = 1)_
+- **H**: Overlap melting temperature is higher than the specified target temperature _(score = overlap_temp - temp_range_high)_
+- **L**: Overlap melting temperature is higher than the specified target temperature _(score = temp_range_low - overlap_temp)_
+- **R**: There are repeats (10bp) within oligomer overlaps within each cluster _(score = 10)_
+- **T**: The overlap of each oligomer is not the smallest/largest within the possible oligomer range, and there is 'T' at the 3' end _(score = 1)_
+- **G**: The last 5 bp of 3' end have 3 consecutive 'G', 'C', or a combination of both. _(score = 1)_
 Overlap score is 0 if there are no possible areas of errors.
 
 **Zip File**
@@ -71,6 +72,11 @@ The oligomer FASTA files can be used for easy visualization and amendments on ot
 **_3. The refresh button allows you to remove the existing parameters without reloading the page_**
 
 #### Previous Data
+<p float="left">
+  <img src="images/login.png" width="100" />
+  <img src="images/previous_data.png" width="100" /> 
+</p>
+
 Login             | Previous Work
 :-------------------------:|:-------------------------:
 ![Screenshot](/images/login.png "Login") |  ![Screenshot](/images/previous_data.png "Previous Work")
