@@ -72,7 +72,7 @@ The oligomer FASTA files can be used for easy visualization and amendments on ot
 **_3. The refresh button allows you to remove the existing parameters without reloading the page_**
 
 #### Previous Data
-<p float="left">
+<p>
   <img src="images/login.png" width="100" />
   <img src="images/previous_data.png" width="100" /> 
 </p>
