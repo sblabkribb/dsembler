@@ -73,7 +73,7 @@ The oligomer FASTA files can be used for easy visualization and amendments on ot
 #### Previous Data
 Login             | Previous Work
 :-------------------------:|:-------------------------:
-![Screenshot](/images/login.png "Login") |  ![Screenshot](/images/previous_work.png "Previous Work")
+![Screenshot](/images/login.png "Login") |  ![Screenshot](/images/previous_data.png "Previous Work")
 
 Users can sign up and login to access their previous data. The database was created using the Flask-SQLite.
 
