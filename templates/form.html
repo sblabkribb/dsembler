@@ -140,8 +140,8 @@
         <a href="{{ url_for('index') }}"><button class='btn btn-secondary'>Refresh</button></a>
         {% if user %}
             <center>
-                <a href="/return-excel-file/" target="blank"><button class='btn btn-info btn-lg'>Excel File</button></a>
-                <a href="/return-fasta-files/" target="blank"><button class='btn btn-info btn-lg'>FASTA File</button></a>
+                <a href="{{url_for('excel_file', user = user) }}" target="blank"><button class='btn btn-info btn-lg'>Excel File</button></a>
+                <a href="{{url_for('fasta_files', user = user) }}" target="blank"><button class='btn btn-info btn-lg'>FASTA File</button></a>
             </center>
         {% endif %}
     </div>

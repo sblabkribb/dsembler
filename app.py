@@ -48,7 +48,6 @@ def index():
 
 @app.route('/addrec', methods = ['POST', 'GET'])
 def addrec():
-    global user, short_gene_seq, gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range
     if request.method == 'POST':
         user_option = request.form.get('membercheckbox')
         timestamp = time.time_ns()
@@ -86,7 +85,6 @@ def addrec():
 
 @app.route('/prev-results/<int:record_id>')
 def prev_results(record_id):
-    global user
     record_id = str(record_id)
     con = sqlite3.connect(db_path)
     con.row_factory=sqlite3.Row
@@ -108,15 +106,15 @@ def prev_results(record_id):
     clusters = dad.design_oligomers(gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range, user)
     return render_template("user.html", clusters=clusters)
 
-@app.route('/return-excel-file/')
-def excel_file():
+@app.route('/return-excel-file/<user>')
+def excel_file(user):
     return send_file(f'/app/output/oligomers_{user}.xlsx', as_attachment=True)
 
 
-@app.route('/return-fasta-files/')
-def fasta_files():
+@app.route('/return-fasta-files/<user>')
+def fasta_files(user):
     return send_file(f'/app/output/fasta_file_{user}.zip', as_attachment=True)
-
+    
 
 @app.route('/signup/',methods = ['POST', 'GET'])
 def signup():
