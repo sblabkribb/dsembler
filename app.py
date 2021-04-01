@@ -1,6 +1,5 @@
 from flask import Flask, render_template, url_for, flash, redirect, request, send_file, send_from_directory, session, g
 from flask_bootstrap import Bootstrap
-from flask_table import Table, Col, LinkCol
 import sqlite3
 from main import DnaAssemblyDesigner as dad
 import os.path
