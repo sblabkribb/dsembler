@@ -2,6 +2,7 @@ from flask import Flask, render_template, url_for, flash, redirect, request, sen
 from flask_bootstrap import Bootstrap
 import sqlite3
 from main import DnaAssemblyDesigner as dad
+from input import InputForm
 import os.path
 import time
 
@@ -42,23 +43,25 @@ def query_db(query, args=(), one=False):
     cur.close()
     return (rv[0] if rv else None) if one else rv
 
-@app.route('/', methods=['POST', 'GET'])
-def index():
-    return render_template('form.html')
 
-@app.route('/addrec', methods = ['POST', 'GET'])
-def addrec():
+@app.route('/', methods = ['POST', 'GET'])
+def index():
+
+    form = InputForm(request.form)
+    
     if request.method == 'POST':
         user_option = request.form.get('membercheckbox')
         timestamp = time.time_ns()
-        gene_seq = str(request.form['gene_seq']).strip()
+        gene_seq = (form.gene_seq.data).strip()
+
         short_gene_seq = gene_seq[:10]+"..."
-        oligomer_size = int(request.form['oligomer_size'])
-        overlap_size = int(request.form['overlap_size'])
-        melting_temp = float(request.form['melting_temp'])
-        temp_range = float(request.form['temp_range'])
-        cluster_size = int(request.form['cluster_size'])
-        cluster_range = int(request.form['cluster_range'])
+        oligomer_size = form.oligomer_size.data
+        overlap_size = form.overlap_size.data
+        melting_temp = form.optimal_temp.data
+        temp_range = form.temp_range.data
+        cluster_size = form.cluster_size.data
+        cluster_range = form.cluster_range.data
+    
         if user_option == "y":
             user = request.form['user']
             member = query_db('select * from members where member = ?', [user], one=True)
@@ -76,16 +79,16 @@ def addrec():
             cur.execute("INSERT INTO variables (user, short_gene_seq, gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range) VALUES (?,?,?,?,?,?,?,?,?)",(user, short_gene_seq, gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range) )
             
             con.commit()
-            if user_option == "y":
-                flash("Record successfully added", "success")
     else:
-        clusters = None
-    return render_template("form.html", user=user)
+        user = None
+    
+    return render_template("form.html", form = form, user=user)
         
 
 @app.route('/prev-results/<int:record_id>')
 def prev_results(record_id):
     record_id = str(record_id)
+    
     con = sqlite3.connect(db_path)
     con.row_factory=sqlite3.Row
 

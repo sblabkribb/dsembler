@@ -66,52 +66,48 @@
                 {% endif %}
             {% endwith %}    
 
-            <form action = "{{ url_for('addrec') }}" method = "POST">
-               
+            <form action = "{{ url_for('index') }}" method = "POST" role="form", enctype="multipart/form-data">
+
+                {{ form.csrf }}
+                
                 <div class="form-group">
-                    <h6>Gene Sequence:</h6>
-                    <textarea name="gene_seq" class="form-control" id="inputGeneSeq" placeholder="Enter Gene Sequence"> </textarea>
+                    {{ wtf.form_field(form.gene_seq, class='form-control', placeholder="Gene Sequence") }}
                 </div>
 
                 <br>
 
                 <div class="form-group"> 
-                    <h6>Target Oligomer Size:</h6>
-                    <input type="text" name="oligomer_size" class="form-control" id="inputOligomerSize" placeholder="Nucleotides">
+                    {{ wtf.form_field(form.oligomer_size, class='form-control', placeholder="Nucleotides") }}
                 </div>
-
+                
                 <br>
-
+                
                 <div class="form-group">
-                    <h6>Target Overlap Size:</h6>
-                    <input type="text" name="overlap_size" class="form-control" id="inputOverlapSize" placeholder="Nucleotides">
+                    {{ wtf.form_field(form.overlap_size, class='form-control', placeholder="Nucleotides") }}
                 </div>
-
+                
                 <br>
-
+                
                 <div class="row">
                     <div class = "form-group col-md-10">
-                        <h6>Melting Temperature of overlap(ºC):</h6>
-                        <input type="text" name="melting_temp" class="form-control" id="inputMeltingTemp" placeholder="ºC">  
+                        {{ wtf.form_field(form.optimal_temp, class='form-control', placeholder="C") }}
                     </div>
                     <div class="form-group col-md-2">
-                        <h6>± (ºC):</h6>
-                        <input type="text" name="temp_range" class="form-control" id="inputTempRange" placeholder="ºC">
+                        {{ wtf.form_field(form.temp_range, class='form-control') }}
                     </div>
                 </div>
-
+                
                 <br>
-
+                
                 <div class="row">
                     <div class = "form-group col-md-10">
-                        <h6>Target Cluster Size:</h6>
-                        <input type="text" name="cluster_size" class="form-control" id="inputClusterSize" placeholder="Number of Oligomers">
+                        {{ wtf.form_field(form.cluster_size, class='form-control', placeholder="Number of oligomers") }}
                     </div>
                     <div class="form-group col-md-2">
-                        <h6>±:</h6>
-                        <input type="text" name="cluster_range" class="form-control" id="inputClusterRange" placeholder="">
+                        {{ wtf.form_field(form.cluster_range, class='form-control') }}
                     </div>
                 </div>
+                
                 <br>
 
                 <div class="row">
