@@ -65,9 +65,6 @@ class DnaAssembly:
             list_of_oligomers.append(possible_overlaps)
             overlap_length.append(possible_overlaps_len)
             seq = seq[rough_oligo_size:]
-        if len(rough_oligo_list[-1]) > high_overlap:
-            list_of_oligomers.append([rough_oligo_list[-1]])
-            overlap_length.append([0])
         # returns two separate lists of lists that 1) contain oligomers with varying overlap lengths 2) their respective overlap lengths
         return list_of_oligomers, overlap_length
 
