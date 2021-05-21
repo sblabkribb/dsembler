@@ -155,7 +155,7 @@ class DnaAssembly:
 
     # selects the smallest oligomer from the possible optimal oligomers (cost effective)
     # input the list of lists of optimal oligomers and corresponding overlap lengths
-    def final_oligomers(self, optimal_oligomers, optimal_overlap_len):
+    def final_oligomers(self, optimal_oligomers, optimal_overlap_len, rough_oligo_list):
 
         final_oligomers, final_overlap_len = [], []
 
@@ -164,6 +164,9 @@ class DnaAssembly:
             smallest_oli = optimal_oligomers[oligomer_index][optimal_overlap_len[oligomer_index].index(smallest_ovr)]
             final_oligomers.append(smallest_oli)
             final_overlap_len.append(smallest_ovr)
+        if len(rough_oligo_list[-1]) > optimal_overlap_len[0][-1]:
+            final_oligomers.append(rough_oligo_list[-1])
+            final_overlap_len.append(0)
         # returns 2 lists that contain the oligomer sequences and overlap lengths
         return final_oligomers, final_overlap_len
 
