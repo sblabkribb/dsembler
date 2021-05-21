@@ -50,7 +50,7 @@ class DnaAssembly:
         list_of_oligomers,overlap_length = [], []
 
         low_overlap = int(overlap_size - (overlap_size/4)) # calculates the shortest possible overlap length
-        high_overlap = rough_oligo_size + 1 # calculates the longest possible overlap length
+        high_overlap = int(overlap_size * 3 / 2) # calculates the longest possible overlap length
         seq = gene_seq[rough_oligo_size:]
 
         for i in range(len(rough_oligo_list) - 1):
@@ -65,6 +65,9 @@ class DnaAssembly:
             list_of_oligomers.append(possible_overlaps)
             overlap_length.append(possible_overlaps_len)
             seq = seq[rough_oligo_size:]
+        if len(rough_oligo_list[-1]) > high_overlap:
+            list_of_oligomers.append([rough_oligo_list[-1]])
+            overlap_length.append([0])
         # returns two separate lists of lists that 1) contain oligomers with varying overlap lengths 2) their respective overlap lengths
         return list_of_oligomers, overlap_length
 
@@ -263,7 +266,7 @@ class DnaAssembly:
         for cluster_len in range(low_cluster, high_cluster, 2):
             num.append(cluster_len)
         
-        if not len(oligomers) in range(cluster_size) :
+        if not len(oligomers) in range(high_cluster) :
         
             comp_list, five_to_three = self.complement_oli(oligomers), self.seq_orientation(oligomers)
             
