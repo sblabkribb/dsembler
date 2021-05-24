@@ -367,15 +367,17 @@ class DnaAssembly:
                     match_index = [data[cluster].index(h) for h in data[cluster] if seq_repeat in h]
                 if len(match_index) > 1:
                     for l in match_index:
-                        score[cluster][l] += 10
-                        fault[cluster][l] += "R"
+                        if overlap[cluster][l] != 0:
+                            score[cluster][l] += 10
+                            fault[cluster][l] += "R"
                     repeats[cluster].append(match_index)
                     repeat_seq[cluster].append(seq_repeat)
             for x in range(len(repeat_position[cluster])):
-                for y in repeats[cluster]:
-                    for u in y:
-                        if x == u:
-                            repeat_position[cluster][x].append(repeat_seq[cluster][repeats[cluster].index(y)])
+                if overlap[cluster][x] != 0:
+                    for y in repeats[cluster]:
+                        for u in y:
+                            if x == u:
+                                repeat_position[cluster][x].append(repeat_seq[cluster][repeats[cluster].index(y)])
         low_temp = optimal_temp- temp_range
         high_temp = optimal_temp + temp_range
         for cluster in range(len(clusters)):
@@ -383,20 +385,21 @@ class DnaAssembly:
                 overlap_size = overlap[cluster][oligomer]
                 clust = clusters[cluster][oligomer]
                 overlap_mt = round(mt.Tm_NN(clust[-overlap_size:], nn_table=mt.DNA_NN3), 2)
-                if low_temp > overlap_mt:
-                    score[cluster][oligomer] += round(abs(low_temp - overlap_mt), 2)
-                    fault[cluster][oligomer] += "L"
-                elif overlap_mt > high_temp:
-                    score[cluster][oligomer] += round(abs(overlap_mt - high_temp), 2)
-                    fault[cluster][oligomer] += "H"
-                    if overlap_size > int(overlap_size - (overlap_size/4)):
-                        if cluster_5_3[cluster][oligomer][-2] == "T":
-                            score[cluster][oligomer] += 1
-                            fault[cluster][oligomer] += "T"
-                gc = ["CCC", "GGG", "CCG", "CGC", "GCC", "GGC", "GCG", "CGG"]
-                if any((t in cluster_5_3[cluster][oligomer][-5:]) for t in gc):
-                    score[cluster][oligomer] += 1
-                    fault[cluster][oligomer] += "G"
+                if overlap_size != 0:
+                    if low_temp > overlap_mt:
+                        score[cluster][oligomer] += round(abs(low_temp - overlap_mt), 2)
+                        fault[cluster][oligomer] += "L"
+                    elif overlap_mt > high_temp:
+                        score[cluster][oligomer] += round(abs(overlap_mt - high_temp), 2)
+                        fault[cluster][oligomer] += "H"
+                        if overlap_size > int(overlap_size - (overlap_size/4)):
+                            if cluster_5_3[cluster][oligomer][-2] == "T":
+                                score[cluster][oligomer] += 1
+                                fault[cluster][oligomer] += "T"
+                    gc = ["CCC", "GGG", "CCG", "CGC", "GCC", "GGC", "GCG", "CGG"]
+                    if any((t in cluster_5_3[cluster][oligomer][-5:]) for t in gc):
+                        score[cluster][oligomer] += 1
+                        fault[cluster][oligomer] += "G"
         return score, fault, repeat_position
 
 

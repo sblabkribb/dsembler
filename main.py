@@ -29,7 +29,10 @@ class DnaAssemblyDesigner:
             for oligomer in range(len(cluster_five_to_three[cluster])):
                 overlap_size = overlap_cluster[cluster][oligomer]
                 clust = clusters[cluster][oligomer]
-                overlap_mt = round(mt.Tm_NN(clust[-overlap_size:], nn_table=mt.DNA_NN3), 2)
+                if overlap_size != 0:
+                    overlap_mt = round(mt.Tm_NN(clust[-overlap_size:], nn_table=mt.DNA_NN3), 2)
+                else:
+                    overlap_mt = 0
                 worksheet.write(0, 0, 'Cluster Number')
                 worksheet.write(0, 1, 'Oligomer Number')
                 worksheet.write(0, 2, "Sequence (5' to 3')")
