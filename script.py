@@ -13,8 +13,8 @@ da = da()
 class DnaAssemblyDesigner:
     def inputs(self):
         file_name, oligomer_size, overlap_size, optimal_temp, cluster_size = input("Enter parameters (Gene Sequence File Path, Target Oligomer size, Target overlap size, Target Melting Temperature, Expected Number of Oligomers in each Cluster) separated by a space: ").split()
-        gene_seq = str(file_name)
-        #gene_seq = str(SeqIO.parse("file_name", "fasta"))
+       # gene_seq = str(file_name)
+        gene_seq = da.read_fasta(file_name)
         oligomer_size = int(oligomer_size)
         overlap_size = int(overlap_size)
         optimal_temp = round(float(optimal_temp), 4)
@@ -39,7 +39,7 @@ class DnaAssemblyDesigner:
         score, fault, repeats_position = da.overlap_score(clust, clusters, cluster_five_to_three, overlap_cluster,
                                                           optimal_temp, temp_range)
         
-        workbook = xlsxwriter.Workbook(f'/app/output_script/oligomers_{user}_{oligomer_size}{overlap_size}{int(optimal_temp)}{cluster_size}.xlsx')
+        workbook = xlsxwriter.Workbook(f'/app/output_script/oligomers_{user}_{oligomer_size}_{overlap_size}_{int(optimal_temp)}_{cluster_size}.xlsx')
         worksheet = workbook.add_worksheet()
         row = 1
         col = 0
@@ -55,7 +55,7 @@ class DnaAssemblyDesigner:
                 else:
                     overlap_mt = 0
                 oligo_len = len(oligo)
-                record = SeqRecord(Seq.Seq(oligo), f'Cluster_{cluster + 1}, Oligomer_{oligomer + 1}', description=f'Overlap Length: {overlap_len}, Oligomer Length: {oligo_len}, Overlap Melting Temperature: {overlap_mt}')
+                record = SeqRecord(Seq.Seq(oligo), f'Oligomer_{cluster + 1}.{oligomer +1}', description=f'Overlap Length: {overlap_len}, Oligomer Length: {oligo_len}, Overlap Melting Temperature: {overlap_mt}')
                 fasta_records.append(record)
                 worksheet.write(0, 0, 'Cluster Number')
                 worksheet.write(0, 1, 'Oligomer Number')
@@ -78,7 +78,7 @@ class DnaAssemblyDesigner:
                 row += 1
         workbook.close()
         
-        SeqIO.write(fasta_records, f'/app/output_script/oligomers_{user}_{oligomer_size}{overlap_size}{int(optimal_temp)}{cluster_size}.fasta', "fasta")
+        SeqIO.write(fasta_records, f'/app/output_script/oligomers_{user}_{oligomer_size}_{overlap_size}_{int(optimal_temp)}_{cluster_size}.fasta', "fasta")
         return cluster_five_to_three
 
 dad = DnaAssemblyDesigner()
@@ -86,4 +86,4 @@ dad = DnaAssemblyDesigner()
 gene_seq, oligomer_size, overlap_size, optimal_temp, temp_range, cluster_size, cluster_range, user = dad.inputs()
 cluster = dad.design_oligomers(gene_seq, oligomer_size, overlap_size, optimal_temp, temp_range, cluster_size, cluster_range, user)
 # print(f'You can access the excel file in the output_script folder as the following file: oligomers_{user}.xlsx')
-print(f'oligomers_{user}_{oligomer_size}{overlap_size}{int(optimal_temp)}{cluster_size} as fasta and xlsx files')
+print(f'oligomers_{user}_{oligomer_size}_{overlap_size}_{int(optimal_temp)}_{cluster_size} as fasta and xlsx files')

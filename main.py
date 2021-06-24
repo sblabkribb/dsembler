@@ -41,7 +41,7 @@ class DnaAssemblyDesigner:
                 else:
                     overlap_mt = 0
                 oligo_len = len(oligo)
-                record = SeqRecord(Seq.Seq(oligo), f'Cluster_{cluster + 1}, Oligomer_{oligomer + 1}', description=f'Overlap Length: {overlap_len}, Oligomer Length: {oligo_len}, Overlap Melting Temperature: {overlap_mt}')
+                record = SeqRecord(Seq.Seq(oligo), f'oligomer_{cluster + 1}.{oligomer + 1}', description=f'Overlap Length: {overlap_len}, Oligomer Length: {oligo_len}, Overlap Melting Temperature: {overlap_mt}')
                 fasta_records.append(record)
                 worksheet.write(0, 0, 'Cluster Number')
                 worksheet.write(0, 1, 'Oligomer Number')
