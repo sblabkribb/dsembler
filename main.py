@@ -25,14 +25,24 @@ class DnaAssemblyDesigner:
         worksheet = workbook.add_worksheet()
         row = 1
         col = 0
+        workbook = xlsxwriter.Workbook(f'/app/output_script/oligomers_{user}.xlsx')
+        worksheet = workbook.add_worksheet()
+        row = 1
+        col = 0
+        fasta_records = []
         for cluster in range(len(cluster_five_to_three)):
             for oligomer in range(len(cluster_five_to_three[cluster])):
-                overlap_size = overlap_cluster[cluster][oligomer]
+                overlap_len = overlap_cluster[cluster][oligomer]
+                oligo_len = len(cluster_five_to_three[cluster][oligomer])
+                oligo = cluster_five_to_three[cluster][oligomer]
                 clust = clusters[cluster][oligomer]
-                if overlap_size != 0:
-                    overlap_mt = round(mt.Tm_NN(clust[-overlap_size:], nn_table=mt.DNA_NN3), 2)
+                if overlap_len != 0:
+                    overlap_mt = round(mt.Tm_NN(clust[-overlap_len:], nn_table=mt.DNA_NN3), 2)
                 else:
                     overlap_mt = 0
+                oligo_len = len(oligo)
+                record = SeqRecord(Seq.Seq(oligo), f'Cluster_{cluster + 1}, Oligomer_{oligomer + 1}', description=f'Overlap Length: {overlap_len}, Oligomer Length: {oligo_len}, Overlap Melting Temperature: {overlap_mt}')
+                fasta_records.append(record)
                 worksheet.write(0, 0, 'Cluster Number')
                 worksheet.write(0, 1, 'Oligomer Number')
                 worksheet.write(0, 2, "Sequence (5' to 3')")
@@ -43,10 +53,10 @@ class DnaAssemblyDesigner:
                 worksheet.write(0, 7, 'Cause of errors')
                 worksheet.write(0, 8, 'Repeat Sequences')
                 worksheet.write(row, col, f'Cluster {cluster + 1}')
-                worksheet.write(row, col + 1 , f'oligomer {oligomer + 1}')
-                worksheet.write(row, col + 2, cluster_five_to_three[cluster][oligomer])
-                worksheet.write(row, col + 3, overlap_size)
-                worksheet.write(row, col + 4, len(cluster_five_to_three[cluster][oligomer]))
+                worksheet.write(row, col + 1, f'oligomer {oligomer + 1}')
+                worksheet.write(row, col + 2, oligo)
+                worksheet.write(row, col + 3, overlap_len)
+                worksheet.write(row, col + 4, oligo_len)
                 worksheet.write(row, col + 5, overlap_mt)
                 worksheet.write(row, col + 6, score[cluster][oligomer])
                 worksheet.write(row, col + 7, "".join([i for i in fault[cluster][oligomer]]))
@@ -54,24 +64,5 @@ class DnaAssemblyDesigner:
                 row += 1
         workbook.close()
         
-        try:
-            shutil.rmtree(f'/app/fasta_files_{user}')
-            os.remove(f'/app/fasta_file_{user}.zip')
-        except:
-            pass
-        os.mkdir(f'/app/fasta_files_{user}/')
-        os.chdir(f'/app/fasta_files_{user}')
-        for i in cluster_five_to_three:
-            for x in i:
-                d = SeqRecord(Seq.Seq(x),description=f'Cluster {cluster_five_to_three.index(i) +1}, Oligomer {i.index(x) +1}' )
-                p = SeqIO.write(d, f'Cluster{cluster_five_to_three.index(i) +1}_oligomer{i.index(x) +1}', "fasta")
-
-        os.chdir('/app/output')
-        shutil.make_archive(f'fasta_file_{user}', 'zip', f'/app/fasta_files_{user}')
-        try:
-            shutil.rmtree(f'/app/fasta_files_{user}')
-        except:
-            pass
-        os.chdir('/app')
-
+        SeqIO.write(fasta_records, f'/app/output_script/oligomers_{user}.fasta', "fasta")
         return cluster_five_to_three
