@@ -116,7 +116,7 @@ def excel_file(user):
 
 @app.route('/return-fasta-files/<user>')
 def fasta_files(user):
-    return send_file(f'/app/output/fasta_file_{user}.fasta', as_attachment=True)
+    return send_file(f'/app/output/oligomers_{user}.fasta', as_attachment=True)
     
 
 @app.route('/signup/',methods = ['POST', 'GET'])
