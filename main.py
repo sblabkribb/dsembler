@@ -25,7 +25,7 @@ class DnaAssemblyDesigner:
         worksheet = workbook.add_worksheet()
         row = 1
         col = 0
-        workbook = xlsxwriter.Workbook(f'/app/output_script/oligomers_{user}.xlsx')
+        workbook = xlsxwriter.Workbook(f'/app/output/oligomers_{user}.xlsx')
         worksheet = workbook.add_worksheet()
         row = 1
         col = 0
@@ -64,5 +64,5 @@ class DnaAssemblyDesigner:
                 row += 1
         workbook.close()
         
-        SeqIO.write(fasta_records, f'/app/output_script/oligomers_{user}.fasta', "fasta")
+        SeqIO.write(fasta_records, f'/app/output/oligomers_{user}.fasta', "fasta")
         return cluster_five_to_three
