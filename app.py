@@ -1,7 +1,7 @@
 from flask import Flask, render_template, url_for, flash, redirect, request, send_file, send_from_directory, session, g
 from flask_bootstrap import Bootstrap
 import sqlite3
-from main import DnaAssemblyDesigner as dad
+from main import Output
 from input import InputForm
 import os.path
 import time
@@ -23,8 +23,6 @@ print('Table created successfully')
 conn.execute('CREATE TABLE IF NOT EXISTS members (member TEXT PRIMARY KEY, name TEXT)')
 print('Table created successfully')
 conn.close()
-
-dad = dad()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 db_path = os.path.join(BASE_DIR, "database.db")
@@ -72,7 +70,10 @@ def index():
         else:
             user = f'Guest_{timestamp}'
         
-        clusters = dad.design_oligomers(gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range, user)
+        o = Output(gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range, user)
+        rough_oligomer, list_of_oligomers, overlap_length = o.design_oligomers()
+        o.oligomer_design(rough_oligomer, list_of_oligomers, overlap_length)
+        o.output_files()
         
         with sqlite3.connect(db_path) as con:
             cur = con.cursor()

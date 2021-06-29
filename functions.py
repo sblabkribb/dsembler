@@ -406,6 +406,7 @@ class DnaAssembly:
  # finding repeat sequences
     # https://stackoverflow.com/questions/4664850/how-to-find-all-occurrences-of-a-substring
     def repeat_seq(self, data):
+        import pdb;pdb.set_trace()
         repeats = 10
         x = []
         seq_no = len(data) - (repeats - 1)
