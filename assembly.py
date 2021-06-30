@@ -28,6 +28,7 @@ assembly.py
         -| oligomer_splice(self)
         -| possible_oligomers(self, rough_oligo_list)
     -| CircularAssembly
+        -| @staticmethod rough_oligo_size_cir(gene_seq, rough_oligo_size)
         -| oligomer_splice(self)
         -| possible_oligomers(self, rough_oligo_list)
 -| OligomerSelection
@@ -36,10 +37,17 @@ assembly.py
         -| t_3_free(self, list_of_oligomers, list_of_overlap_lengths)
         -| gc_tm_optimal(self, list_of_oligomers, list_of_overlap_lengths)
         -| smallest_oligomers(self, list_of_oligomers, list_of_overlap_lengths, rough_oligo_list)
+        -| smallest_oligomers(self, list_of_oligomers, list_of_overlap_lengths, rough_oligo_list, rough_oligomer_size, high_overlap)
     -| Score
         -| overlap_score(self, cluster, complementary_cluster, 5_to_3_cluster, overlap_length)
 -| Clusters
     -| complementary_clusters(self, oligomers, overlap_length) 
+-| SequenceProcessing
+    -| @staticmethod complement_oli(data)
+    -| @staticmethod overlap_list(data)
+    -| @staticmethod overlap_alignment(sequences)
+    -| @staticmethod seq_orientation(sequences)
+    -| @staticmethod repeat_seq(data)
 '''
 
 class TypeError(Exception):
@@ -66,7 +74,8 @@ class FastaFile:
 class SequenceProcessing:
     # function for generating alternative complementary sequences
     # input a list of sequences
-    def complement_oli(self, data):
+    @staticmethod
+    def complement_oli(data):
 
         comp_list = []
 
@@ -81,7 +90,8 @@ class SequenceProcessing:
 
     # generating single list with all overlap regions
     # input the list of oligomers and their respective overlap length
-    def overlap_list(self, oligomer_list, overlap_length):
+    @staticmethod
+    def overlap_list(oligomer_list, overlap_length):
 
         overlaps = []
 
@@ -94,7 +104,8 @@ class SequenceProcessing:
 
     # check overlap alignment of a given list
     # input a list of sequences
-    def overlap_alignment(self, sequences):
+    @staticmethod
+    def overlap_alignment(sequences):
 
         alignment_index = []
 
@@ -109,7 +120,8 @@ class SequenceProcessing:
 
     # orientates sequences in 5 to 3 format
     # input a list of sequences
-    def seq_orientation(self, sequences):
+    @staticmethod
+    def seq_orientation(sequences):
 
         five_to_three = []
 
@@ -124,7 +136,8 @@ class SequenceProcessing:
 
     # finding repeat sequences
     # https://stackoverflow.com/questions/4664850/how-to-find-all-occurrences-of-a-substring
-    def repeat_seq(self, data):
+    @staticmethod
+    def repeat_seq(data):
         repeats = 10
         x = []
         seq_no = len(data) - (repeats - 1)
@@ -190,43 +203,68 @@ class LinearAssembly(Oligomers):
         # returns two separate lists of lists that 1) contain oligomers with varying overlap lengths 2) their respective overlap lengths
         return list_of_oligomers, overlap_length
 
-# generating oligomer sequences for circular DNA sequences TODO
+# generating oligomer sequences for circular DNA sequences
 class CircularAssembly(Oligomers):
+    def __init__(self, gene_seq, oligomer_size, overlap_size):
+        super().__init__(gene_seq, oligomer_size, overlap_size)
+        self.rough_oligomer_size = self.rough_oligo_size_cir(self.gene_seq, self.rough_oligo_size)
+        self.low_overlap = int(self.overlap_size - (self.overlap_size / 4))  # calculates the shortest possible overlap length
+        self.high_overlap = int(self.overlap_size * 4 / 3)  # calculates the longest possible overlap length
+
+    @staticmethod
+    def rough_oligo_size_cir(gene_seq, rough_oligo_size):
+        # find the even number when divided with the length of the given gene seq is closest to the user's inputed (rough oligomers)
+        number = None
+        for i in range(1, 100):
+            number = len(gene_seq) / (i * 2)
+            if number < rough_oligo_size:
+                break
+        oligomer_s = round(number)  # estimated approximate overlap size as calculated previously
+
+        oligo_size = oligomer_s - 1  # calculates the size of oligomers without overlaps
+        return oligo_size
+
     # splicing into oligomers
     # input gene sequence (str), target oligomer size(int), and target overlap size(int)
     def oligomer_splice(self):
         # calculates the size of oligomers without overlaps
         rough_oligo_list = []
-        for start_pos in range(0, len(self.gene_seq), self.rough_oligo_size):
-            rough_oligo = self.gene_seq[start_pos: start_pos + self.rough_oligo_size]
-
+        # generate rough oligomers as in linear
+        for start_pos in range(0, len(self.gene_seq), self.rough_oligomer_size):
+            rough_oligo = self.gene_seq[start_pos: start_pos + self.rough_oligomer_size]
             if rough_oligo:
                 rough_oligo_list.append(rough_oligo)
+        # add an overlap region between the last and first oligomer (to make it circular)
+        if len(rough_oligo_list[-1]) < self.rough_oligomer_size:
+            rough_oligo_list[-1] = rough_oligo_list[-1] + rough_oligo_list[0]
+        else:
+            rough_oligo_list.append(rough_oligo_list[0])
         # returns list of oligomer sequences without overlaps
         return rough_oligo_list
 
     def possible_oligomers(self, rough_oligo_list):
 
+        # as we are using an approximate value of the user's specifications, we use 4/3 as the largest overlap possible
         list_of_oligomers, overlap_length = [], []
+        sequence = ''.join(rough_oligo_list)  # uses sequence created by the rough oligomers
+        seq = sequence[self.rough_oligomer_size:]
 
-        low_overlap = int(
-            self.overlap_size - (self.overlap_size / 4))  # calculates the shortest possible overlap length
-        high_overlap = int(self.overlap_size * 3 / 2)  # calculates the longest possible overlap length
-        seq = self.gene_seq[self.rough_oligo_size:]
-
+        # generates a list of possible oligomers for the given rough oligomers
         for i in range(len(rough_oligo_list) - 1):
             possible_overlaps, possible_overlaps_len, = [], []
 
-            for overlap in range(low_overlap, high_overlap):
+            for overlap in range(self.low_overlap, self.high_overlap):
                 overlap_seq = seq[:overlap]
                 oligomer = rough_oligo_list[i] + overlap_seq
                 possible_overlaps.append(oligomer)
                 possible_overlaps_len.append(overlap)
             list_of_oligomers.append(possible_overlaps)
             overlap_length.append(possible_overlaps_len)
-            seq = seq[self.rough_oligo_size:]
+            seq = seq[self.rough_oligomer_size:]
         # returns two separate lists of lists that 1) contain oligomers with varying overlap lengths 2) their respective overlap lengths
-        return list_of_oligomers, overlap_length
+        return list_of_oligomers, overlap_length, self.rough_oligomer_size, self.high_overlap
+
+    #TODO: define insert and backbone regions
 
 # selects oligomers based on user parameters: Melting temp, GC content, overlap length, GC clamp
 class OligomerSelection:
@@ -324,6 +362,25 @@ class UserParameterSelection(OligomerSelection):
             smallest_overlap_len.append(0)
         # returns 2 lists that contain the oligomer sequences and overlap lengths
         return smallest_oligomers, smallest_overlap_len
+
+    # specific to circular assemblies. Select oligomers based on length (smallest)
+    def _smallest_oligomers(self, optimal_oligomers, optimal_overlap_len, rough_oligo_list, rough_oligomer_size, high_overlap):
+
+        smallest_oligomers, smallest_overlap_len = [], []
+
+        for oligomer_index in range(len(optimal_oligomers)):
+            smallest_ovr = min(optimal_overlap_len[oligomer_index])
+            smallest_oli = optimal_oligomers[oligomer_index][
+                optimal_overlap_len[oligomer_index].index(smallest_ovr)]
+            smallest_oligomers.append(smallest_oli)
+            smallest_overlap_len.append(smallest_ovr)
+        if not len(rough_oligo_list) % 2 == 0 & len(
+                smallest_oligomers[-1]) < rough_oligomer_size + high_overlap:
+            r = (rough_oligomer_size + high_overlap) - len(smallest_oligomers[-1])
+            smallest_oligomers[-1] = smallest_oligomers[-1] + rough_oligo_list[-1][
+                                                              smallest_overlap_len[-1]:(
+                                                                          smallest_overlap_len[-1] + r)]
+            return smallest_oligomers, smallest_overlap_len
 
 # generates clusters based on sequence similarities
 class Cluster:
@@ -438,7 +495,7 @@ class Score(UserParameterSelection):
             print(cluster_length)
         for cluster in cluster_length:
             g = []
-            for x in range(len(clusters[cluster])-1):
+            for x in range(len(clusters[cluster])):
                 overla = overlap[cluster][x]
                 data_to_put = clusters[cluster][x][-overla:]
                 g.append(data_to_put)
@@ -483,18 +540,3 @@ class Score(UserParameterSelection):
                         fault[cluster][oligomer] += "G"
         return score, fault, repeat_position
 
-
-#
-# seq = "TTCTTGACGAGTTCTTCTGAGCGGGACTCTGGATCTAGAGTCAAGCAGATCGTTCAAACATTTGGCAATAAAGTTTCTTAAGATTGAATCCTGTTGCCGGTCTTGCGATGATTATCATATAATTTCTGTTGAATTACGTTAAGCATGTAATAATTAACATGTAATGCATGACGTTATTTATGAGATGGGTTTTTATGATTAGAGTCCCGCAATTATACATTTAATACGCGATAGAAAACAAAATATAGCGCGCAAACTAGGATAAA"
-# la = LinearAssembly(seq, 50, 20)
-# x = la.oligomer_splice()
-# s, t = la.possible_oligomers(x)
-# os = UserParameterSelection(56, 2.5)
-# e, p = os.t_3_free(s, t)
-# d, r = os.gc_tm_optimal(e, p)
-# f, n = os.smallest_oligomers(d,r,x)
-# c = Cluster(5, 2)
-# y, u, i, o = c.complementary_clusters(f, n)
-# print(c.complementary_clusters(f, n))
-#
-# print(i)

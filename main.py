@@ -42,14 +42,12 @@ class Input:
 
 # Run methods from assembly.py to perform a Linear or Circular assembly
 class OligomerGenerator(Input):
-    # common functions for Linear and Circular assembly are executed using this method
-    def oligomer_design(self, rough_oligomer, list_of_oligomers, overlap_length):
-        # select optimal oligomers
-        ups = UserParameterSelection(self.optimal_temp, self.temp_range)
-        t_3_free_oligomers, t_3_free_overlap_len = ups.t_3_free(list_of_oligomers, overlap_length)
-        optimal_oligomers, optimal_overlap_len = ups.gc_tm_optimal(t_3_free_oligomers, t_3_free_overlap_len)
-        final_oligomers, final_overlaps = ups.smallest_oligomers(optimal_oligomers, optimal_overlap_len, rough_oligomer)
+    def __init__(self, file_name, oligomer_size, overlap_size, optimal_temp, temp_range, cluster_size, cluster_range, user):
+        super().__init__(file_name, oligomer_size, overlap_size, optimal_temp, temp_range, cluster_size, cluster_range, user)
+        self.ups = UserParameterSelection(self.optimal_temp, self.temp_range)
 
+    #functions for Linear and Circular assembly are executed using this method
+    def oligomer_design(self, final_oligomers, final_overlaps):
         # generate clusters
         c = Cluster(self.cluster_size, self.cluster_range)
         self.clust, self.clusters, self.cluster_five_to_three, self.overlap_cluster = c.complementary_clusters(final_oligomers, final_overlaps)
@@ -62,24 +60,42 @@ class OligomerGenerator(Input):
         print(self.clusters)
         return self.clusters, self.cluster_five_to_three, self.overlap_cluster, self.score, self.fault, self.repeats_position
 
+
 # Initiate oligomer splicing with the method developed for LinearAssembly
 class LinearOligomers(OligomerGenerator):
     # splice given sequence and generate possible oligomers
     def design_oligomers(self):
+
         la = LinearAssembly(self.gene_seq, self.oligomer_size, self.overlap_size)
+
         rough_oligomer = la.oligomer_splice()
         list_of_oligomers, overlap_length = la.possible_oligomers(rough_oligomer)
-        # returns lists of rough and possible oligomers, along with corresponding overlap lengths
-        return rough_oligomer, list_of_oligomers, overlap_length
+
+        # select optimal oligomers
+        t_3_free_oligomers, t_3_free_overlap_len = self.ups.t_3_free(list_of_oligomers, overlap_length)
+        optimal_oligomers, optimal_overlap_len = self.ups.gc_tm_optimal(t_3_free_oligomers, t_3_free_overlap_len)
+        final_oligomers, final_overlaps = self.ups.smallest_oligomers(optimal_oligomers, optimal_overlap_len, rough_oligomer)
+
+        # returns final oligomer list with their corresponding overlap lengths
+        return final_oligomers, final_overlaps
 
 # Initiate oligomer splicing with the method developed for CircularAssembly
-class CircularOligomers(OligomerGenerator): #TODO
+class CircularOligomers(OligomerGenerator): 
     # splice given sequence and generate possible oligomers
     def _design_oligomers(self):
+
         ca = CircularAssembly(self.gene_seq, self.oligomer_size, self.overlap_size)
+
         rough_oligomer = ca.oligomer_splice()
-        list_of_oligomers, overlap_length = ca.possible_oligomers(rough_oligomer)
-        return rough_oligomer, list_of_oligomers, overlap_length
+        list_of_oligomers, overlap_length, rough_oligomer_size, high_overlap = ca.possible_oligomers(rough_oligomer)
+
+        # select optimal oligomers
+        t_3_free_oligomers, t_3_free_overlap_len = self.ups.t_3_free(list_of_oligomers, overlap_length)
+        optimal_oligomers, optimal_overlap_len = self.ups.gc_tm_optimal(t_3_free_oligomers, t_3_free_overlap_len)
+        final_oligomers, final_overlaps = self.ups._smallest_oligomers(optimal_oligomers, optimal_overlap_len, rough_oligomer, rough_oligomer_size, high_overlap)
+
+        # returns final oligomer list with their corresponding overlap lengths
+        return final_oligomers, final_overlaps
 
 # Generate files containing the output
 class Output(LinearOligomers, CircularOligomers):

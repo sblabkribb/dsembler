@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t dsembler:v4 .
+docker build -t dsembler:v5 .

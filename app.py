@@ -49,6 +49,8 @@ def index():
     
     if request.method == 'POST':
         user_option = request.form.get('membercheckbox')
+        seq_orientation = request.form.get('seqorientation')
+        print(seq_orientation)
         timestamp = time.time_ns()
         gene_seq = (form.gene_seq.data).strip()
 
@@ -71,8 +73,15 @@ def index():
             user = f'Guest_{timestamp}'
         
         o = Output(gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range, user)
-        rough_oligomer, list_of_oligomers, overlap_length = o.design_oligomers()
-        o.oligomer_design(rough_oligomer, list_of_oligomers, overlap_length)
+        
+        #rough_oligomer, list_of_oligomers, overlap_length = o.design_oligomers()
+        #o.oligomer_design(rough_oligomer, list_of_oligomers, overlap_length)
+        if seq_orientation != 'c':
+            final_oligomers, final_overlap_len = o.design_oligomers()
+        else:
+            final_oligomers, final_overlap_len = o._design_oligomers()
+        
+        o.oligomer_design(final_oligomers, final_overlap_len)
         o.output_files()
         
         with sqlite3.connect(db_path) as con:
