@@ -50,6 +50,7 @@ class Input:
         parser.add_argument('-c', '--cluster_size', type=int, help="Number of Oligomers in one cluster", default=20)
         parser.add_argument('-tmr', '--temp_range', type=float, help="Range in which the overlap Tm is acceptable (+-C)", default=2.5)
         parser.add_argument('-cr', '--cluster_range', type=int, help="Range of Number of Oligomers in one cluster (+- oligomers)", default=4)
+        parser.add_argument('-so', '--seq_orientation', type=str, help="Is the sequence linear or circular? (l/c)", default="l")
         args= parser.parse_args()
 
         # return inputs to the __init__() function to initialize
@@ -93,7 +94,7 @@ class LinearOligomers(OligomerGenerator):
         return final_oligomers, final_overlaps
 
 # Initiate oligomer splicing with the method developed for CircularAssembly
-class CircularOligomers(OligomerGenerator): #TODO
+class CircularOligomers(OligomerGenerator): 
     # splice given sequence and generate possible oligomers
     def _design_oligomers(self):
 
@@ -159,13 +160,20 @@ class Output(LinearOligomers, CircularOligomers):
         return self.cluster_five_to_three
 
 o = Output.get_inputs()
-x = input("Is the sequence linear or circular (l/c)? ")
+
+y = parser.parse_args()
+
+x = y.seq_orientation
+
 if x == 'l':
     final_oligomers, final_overlap_len = o.design_oligomers()
-else:
+elif x == 'c':
     final_oligomers, final_overlap_len = o._design_oligomers()
+else:
+    raise NameError("Please enter a valid sequence orientation")
+
 o.oligomer_design(final_oligomers, final_overlap_len)
-v = o.output_files(x)
+o.output_files(x)
 
 # parser.add_argument('-d', '--default_tm_c', help="Change defaults of -tm and -c",
 #                             default=False)
