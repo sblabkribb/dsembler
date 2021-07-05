@@ -1,7 +1,7 @@
 from flask import Flask, render_template, url_for, flash, redirect, request, send_file, send_from_directory, session, g
 from flask_bootstrap import Bootstrap
 import sqlite3
-from main import Output
+from main import Assembly
 from input import InputForm
 import os.path
 import time
@@ -71,19 +71,18 @@ def index():
                 flash('Success', 'success')
         else:
             user = f'Guest_{timestamp}'
-        
-        o = Output(gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range, user)
-        
-        #rough_oligomer, list_of_oligomers, overlap_length = o.design_oligomers()
-        #o.oligomer_design(rough_oligomer, list_of_oligomers, overlap_length)
-        if seq_orientation != 'c':
-            final_oligomers, final_overlap_len = o.design_oligomers()
+        print(seq_orientation)
+        if seq_orientation == "c":
+            seq_orient = "c"
         else:
-            final_oligomers, final_overlap_len = o._design_oligomers()
-        
-        o.oligomer_design(final_oligomers, final_overlap_len)
-        o.output_files()
-        
+            seq_orient = "l"
+
+        a = Assembly(gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range, seq_orient, user)
+                
+        comp_clusters, cluster_five_two_three, cluster_ovr, score, fault, repeats = a.oligomer_design()
+
+        a.output(comp_clusters, cluster_five_two_three, cluster_ovr, score, fault, repeats)        
+
         with sqlite3.connect(db_path) as con:
             cur = con.cursor()
             cur.execute("INSERT INTO variables (user, short_gene_seq, gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range) VALUES (?,?,?,?,?,?,?,?,?)",(user, short_gene_seq, gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range) )
