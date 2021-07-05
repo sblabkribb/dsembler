@@ -71,13 +71,13 @@ def index():
                 flash('Success', 'success')
         else:
             user = f'Guest_{timestamp}'
-        print(seq_orientation)
+        
         if seq_orientation == "c":
-            seq_orient = "c"
-        else:
+            seq_orient = seq_orientation
+        elif seq_orientation != "c":
             seq_orient = "l"
 
-        a = Assembly(gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range, seq_orient, user)
+        a = Assembly(gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, cluster_size, cluster_range, user, seq_orient)
                 
         comp_clusters, cluster_five_two_three, cluster_ovr, score, fault, repeats = a.oligomer_design()
 
