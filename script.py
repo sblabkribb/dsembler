@@ -57,7 +57,10 @@ class Assembly(Input):
 
         clusters, comp_clusters, cluster_five_two_three, cluster_ovr = self.c.complementary_clusters(final_oligomers, final_overlaps)
         score, fault, repeats = self.og.overlap_score(clusters, comp_clusters, cluster_five_two_three, cluster_ovr)
-        self.c.recommended_clusters(final_oligomers, final_overlaps)
+        try:        
+            self.c.recommended_clusters(final_oligomers, final_overlaps)
+        except:
+            pass
 
         return comp_clusters, cluster_five_two_three, cluster_ovr, score, fault, repeats
 

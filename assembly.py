@@ -246,7 +246,6 @@ class Oligomers:
         else:
             for i in range(len(clusters)):
                 cluster_length.append(i)
-            print(cluster_length)
         for cluster in cluster_length:
             g = []
             for x in range(len(clusters[cluster]) - 1):
