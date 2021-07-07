@@ -94,16 +94,27 @@ class Sequence:
 
     # check overlap alignment of a given list
     # input a list of sequences
-    @staticmethod
-    def overlap_alignment(sequences):
+    @classmethod
+    def overlap_alignment(cls, sequences):
 
         alignment_index = []
-
-        for a, b in itertools.combinations(sequences, 2):
+        repeats = 10
+        x = []
+        for i in sequences:
+            seq_no = len(i) - (repeats - 1)
+            seq_list = []
+            for j in range(seq_no):
+                start_pos = j
+                end_pos = j + repeats
+                b = i[start_pos:end_pos]
+                seq_list.append(b)
+            x.append(seq_list)
+        overlap_segments = cls.flatten(x)
+        for a, b in itertools.combinations(overlap_segments, 2):
             align = aligner.align(a, b)
             align_ratio = align.score / max(len(a), len(b))
             if align_ratio > 0.7:
-                index = [sequences.index(a), sequences.index(b)]
+                index = [overlap_segments.index(a), overlap_segments.index(b)]
                 alignment_index.append(index)
         # return a list of list containing the indexes of high levels of alignments between two sequences
         return alignment_index
@@ -124,25 +135,32 @@ class Sequence:
         # list of oligomers with the right orientation
         return five_to_three
 
+    @staticmethod
+    def flatten(list_of_list):
+        return [item for sublist in list_of_list for item in sublist]
+
     # finding repeat sequences
     # https://stackoverflow.com/questions/4664850/how-to-find-all-occurrences-of-a-substring
-    @staticmethod
-    def repeat_seq(data):
+    @classmethod
+    def repeat_seq(cls, data):
+        x, y = [], []
         repeats = 10
-        x = []
-        seq_no = len(data) - (repeats - 1)
-        seq_list = []
-        for j in range(seq_no):
-            start_pos = j
-            end_pos = j + repeats
-            b = data[start_pos:end_pos]
-            seq_list.append(b)
-        s = [item for item, count in collections.Counter(seq_list).items() if count > 1]
+        for i in data:
+            seq_no = len(i) - (repeats - 1)
+            seq_list = []
+            for j in range(seq_no):
+                start_pos = j
+                end_pos = j + repeats
+                b = i[start_pos:end_pos]
+                seq_list.append(b)
+            x.append(seq_list)
+        overlap_segments = cls.flatten(x)
+        s = [item for item, count in collections.Counter(overlap_segments).items() if count > 1]
         for repeat in s:
-            matches = re.finditer(repeat, data)
+            matches = re.finditer(repeat, "".join(data))
             matches_position = [match.start() for match in matches]
-            x.append(matches_position)
-        return x
+            y.append(matches_position)
+        return y
 
 # class that acts on individual oligomer sequences
 class Oligomers:
@@ -253,7 +271,7 @@ class Oligomers:
                 data_to_put = clusters[cluster][x][-overla:]
                 g.append(data_to_put)
                 d = "".join(g)
-                s = Sequence.repeat_seq(d)
+            s = Sequence.repeat_seq(g)
             for i in s:
                 for a in i:
                     seq_repeat = d[a:a + 11]
@@ -419,128 +437,45 @@ class OligomerGroups(Oligomers):
                 r = (self.rough_oligo_size + self.high_overlap) - len(smallest_oligomers[-1])
                 smallest_oligomers[-1] = smallest_oligomers[-1] + rough_oligo_list[-1][
                                                                   smallest_overlap_len[-1]:(
-                                                                          smallest_overlap_len[-1] + r)]
+                                                                     smallest_overlap_len[-1] + r)]
         # returns 2 lists that contain the oligomer sequences and overlap lengths
         return smallest_oligomers, smallest_overlap_len
 
 # class that works with oligomer clusters
 class Clusters:
-
-    def __init__(self, cluster_size, cluster_range):
-        self.cluster_size = cluster_size
-        self.cluster_range = cluster_range
-        self.low_cluster = cluster_size - cluster_range
-        self.high_cluster = cluster_size + cluster_range + 1
-
-    # get the index of the cluster size with lowest sequence similarities
-    @staticmethod
-    def get_index_values(data):
-        g = list(map(len, data))
-        min_value = min(g)
-        if g.count(min_value) > 1:
-            d = [i for i, x in enumerate(g) if x == min_value]
-            return max(d)
-        else:
-            return g.index(min_value)
-
     # make clusters based on alignment score
     # input list of oligomers and their respective overlap lengths; the (int) user input of cluster size and cluster range
     def complementary_clusters(self, oligomers, overlap_len):
 
-        num = []
+        comp_list, five_to_three = Sequence.complement_oli(oligomers), Sequence.seq_orientation(oligomers)
 
-        for cluster_len in range(self.low_cluster, self.high_cluster, 2):
-            num.append(cluster_len)
-
-        if not len(oligomers) in range(self.high_cluster):
-
-            comp_list, five_to_three = Sequence.complement_oli(oligomers), Sequence.seq_orientation(oligomers)
-
-            clusters, comp_clusters, cluster_ovr, cluster_five_two_three = [], [], [], []
-
-            oligos = oligomers
-            overlap = overlap_len
-
-            while oligos:
-                alignments = []
-
-                for cluster_length in num:
-                    alignment = Sequence.overlap_alignment(
-                        Sequence.overlap_list(oligos[:cluster_length], overlap[:cluster_length]))
-                    alignments.append(alignment)
-
-                    if alignments.count(alignments[0]) == len(alignments):
-                        oligomers = oligos[:self.cluster_size]
-                        overlap_len = overlap[:self.cluster_size]
-
-                        oligos = oligos[self.cluster_size:]
-                        overlap = overlap[self.cluster_size:]
-
-                        complementary_cluster = comp_list[:self.cluster_size]
-                        final_cluster = five_to_three[:self.cluster_size]
-                        comp_list = comp_list[self.cluster_size:]
-                        five_to_three = five_to_three[self.cluster_size:]
-
-                        clusters.append(oligomers)
-                        comp_clusters.append(complementary_cluster)
-                        cluster_ovr.append(overlap_len)
-                        cluster_five_two_three.append(final_cluster)
-
-                    elif any(alignments.count(element) > 1 for element in alignments):
-                        min_align = min(alignments, key=lambda x: len(x))
-                        if alignments.count(min_align) > 1:
-                            c = [num[index] for index, element in enumerate(alignments) if element == min_align]
-                            cluster_dim = num[min(range(len(c)),
-                                                  key=lambda cluster_length: abs(
-                                                      c[cluster_length] - self.cluster_size))]
-                        else:
-                            cluster_dim = num[alignments.index(min_align)]
-
-                        oligomers = oligos[:cluster_dim]
-                        overlap_len = overlap[:cluster_dim]
-
-                        oligos = oligos[cluster_dim:]
-                        overlap = overlap[cluster_dim:]
-
-                        complementary_cluster = comp_list[:cluster_dim]
-                        final_cluster = five_to_three[:cluster_dim]
-                        comp_list = comp_list[cluster_dim:]
-                        five_to_three = five_to_three[cluster_dim:]
-
-                        clusters.append(oligomers)
-                        cluster_ovr.append(overlap_len)
-                        comp_clusters.append(complementary_cluster)
-                        cluster_five_two_three.append(final_cluster)
-        # if the cluster size inputted is larger than the final cluster
-        else:
-            clusters = [oligomers]
-            comp_clusters = [Sequence.complement_oli(oligomers)]
-            cluster_ovr = [overlap_len]
-            cluster_five_two_three = [Sequence.seq_orientation(oligomers)]
-
-        # returns three list of lists containing oligomers and their respective overlap lengths in appropriate clusters sizes
-        return clusters, comp_clusters, cluster_five_two_three, cluster_ovr
-
-    # recommended size of clusters
-    def recommended_clusters(self, oligomers, overlap_len):
-        num = 1 # round(self.low_cluster / 2)
+        clusters, comp_clusters, cluster_ovr, cluster_five_two_three = [], [], [], []
 
         oligos = oligomers
         overlap = overlap_len
-        indexes = []
+
         while oligos:
-            alignments = []
-            for cluster_length in range(num, self.low_cluster):
-                alignment = Sequence.overlap_alignment(
+            for cluster_length in range(1, 30):
+                alignment = Sequence.repeat_seq(
                     Sequence.overlap_list(oligos[:cluster_length], overlap[:cluster_length]))
-                alignments.append(alignment)
-            index = self.get_index_values(alignments)
-            oligos = oligos[num + index + 1:]
+                if len(alignment) > 0:
+                    break
 
-            indexes.append(index)
-        recommend = num + min(indexes) + 1
-        if recommend < self.low_cluster:
-            return print(f"You could choose {recommend} oligomers or more per cluster for fewer repeats amongst overlaps")
-        else:
-            pass
+            index = cluster_length - 1
+            oligomers = oligos[:index]
+            overlap_len = overlap[:index]
 
+            oligos = oligos[index:]
+            overlap = overlap[index:]
+
+            complementary_cluster = comp_list[:index]
+            final_cluster = five_to_three[:index]
+            comp_list = comp_list[index:]
+            five_to_three = five_to_three[index:]
+
+            clusters.append(oligomers)
+            cluster_ovr.append(overlap_len)
+            comp_clusters.append(complementary_cluster)
+            cluster_five_two_three.append(final_cluster)
+        # returns three list of lists containing oligomers and their respective overlap lengths in appropriate clusters sizes
+        return clusters, comp_clusters, cluster_five_two_three, cluster_ovr

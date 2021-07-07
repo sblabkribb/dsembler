@@ -12,15 +12,13 @@ parser = argparse.ArgumentParser()
 # Input parameters and initialize variables
 class Input:
     # initialize variables
-    def __init__(self, file_name, oligomer_size, overlap_size, optimal_temp, temp_range, cluster_size, cluster_range, seq_orientation):
+    def __init__(self, file_name, oligomer_size, overlap_size, optimal_temp, temp_range, seq_orientation):
         #self.gene_seq = str(file_name).upper()
         self.gene_seq = Sequence.read_fasta(file_name)
         self.oligomer_size = int(oligomer_size)
         self.overlap_size = int(overlap_size)
         self.optimal_temp = round(float(optimal_temp), 4)
-        self.cluster_size = int(cluster_size)
         self.temp_range = float(temp_range)
-        self.cluster_range = int(cluster_range)
         self.user = round(time.time())
         self.seq_orientation = str(seq_orientation)
 
@@ -32,20 +30,18 @@ class Input:
         parser.add_argument('-ol', '--oligomer_length', type=int, required=True, help="Maximum length of oligomers")
         parser.add_argument('-ov', '--overlap_length', type=int, required=True, help="Target Overlap length")
         parser.add_argument('-tm', '--optimal_tm', type=float, help="Target Melting Temperature for each overlap", default= 56)
-        parser.add_argument('-c', '--cluster_size', type=int, help="Number of Oligomers in one cluster", default=20)
         parser.add_argument('-tmr', '--temp_range', type=float, help="Range in which the overlap Tm is acceptable (+-C)", default=2.5)
-        parser.add_argument('-cr', '--cluster_range', type=int, help="Range of Number of Oligomers in one cluster (+- oligomers)", default=4)
         parser.add_argument('-so', '--seq_orientation', type=str, help="Is the sequence linear or circular?", default="l")
         args= parser.parse_args()
         # return inputs to the __init__() function to initialize
-        return cls(args.file, args.oligomer_length, args.overlap_length, args.optimal_tm, args.temp_range, args.cluster_size, args.cluster_range, args.seq_orientation)
+        return cls(args.file, args.oligomer_length, args.overlap_length, args.optimal_tm, args.temp_range, args.seq_orientation)
 
 class Assembly(Input):
 
-    def __init__(self, file_name, oligomer_size, overlap_size, optimal_temp, temp_range, cluster_size, cluster_range, seq_orientation):
-        super().__init__(file_name, oligomer_size, overlap_size, optimal_temp, temp_range, cluster_size, cluster_range, seq_orientation)
+    def __init__(self, file_name, oligomer_size, overlap_size, optimal_temp, temp_range, seq_orientation):
+        super().__init__(file_name, oligomer_size, overlap_size, optimal_temp, temp_range, seq_orientation)
         self.og = OligomerGroups(self.gene_seq, self.seq_orientation, self.oligomer_size, self.overlap_size, self.optimal_temp, self.temp_range)
-        self.c = Clusters(self.cluster_size, self.cluster_range)
+        self.c = Clusters()
 
     def oligomer_design(self):
 
@@ -57,16 +53,12 @@ class Assembly(Input):
 
         clusters, comp_clusters, cluster_five_two_three, cluster_ovr = self.c.complementary_clusters(final_oligomers, final_overlaps)
         score, fault, repeats = self.og.overlap_score(clusters, comp_clusters, cluster_five_two_three, cluster_ovr)
-        try:        
-            self.c.recommended_clusters(final_oligomers, final_overlaps)
-        except:
-            pass
 
         return comp_clusters, cluster_five_two_three, cluster_ovr, score, fault, repeats
 
     def output(self, comp_clusters, cluster_five_to_three, overlap_cluster, score, fault, repeats):
         workbook = xlsxwriter.Workbook(
-            f'/app/output_script/oligomers_{self.user}_{self.oligomer_size}_{self.overlap_size}_{int(self.optimal_temp)}_{self.cluster_size}_{self.seq_orientation}.xlsx')
+            f'/app/output_script/oligomers_{self.user}_{self.oligomer_size}_{self.overlap_size}_{int(self.optimal_temp)}_{self.seq_orientation}.xlsx')
         worksheet = workbook.add_worksheet()
         row = 1
         col = 0
@@ -107,10 +99,10 @@ class Assembly(Input):
         workbook.close()
 
         SeqIO.write(fasta_records,
-                    f'/app/output_script/oligomers_{self.user}_{self.oligomer_size}_{self.overlap_size}_{int(self.optimal_temp)}_{self.cluster_size}_{self.seq_orientation}.fasta',
+                    f'/app/output_script/oligomers_{self.user}_{self.oligomer_size}_{self.overlap_size}_{int(self.optimal_temp)}_{self.seq_orientation}.fasta',
                     "fasta")
         print(
-            f'oligomers_{self.user}_{self.oligomer_size}_{self.overlap_size}_{int(self.optimal_temp)}_{self.cluster_size}_{self.seq_orientation} as fasta and xlsx files')
+            f'oligomers_{self.user}_{self.oligomer_size}_{self.overlap_size}_{int(self.optimal_temp)}_{self.seq_orientation} as fasta and xlsx files')
         return cluster_five_to_three
 
 a = Assembly.get_inputs()

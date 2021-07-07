@@ -13,24 +13,22 @@ parser = argparse.ArgumentParser()
 # Input parameters and initialize variables
 class Input:
     # initialize variables
-    def __init__(self, file_name, oligomer_size, overlap_size, optimal_temp, temp_range, cluster_size, cluster_range, user, seq_orientation):
+    def __init__(self, file_name, oligomer_size, overlap_size, optimal_temp, temp_range, user, seq_orientation):
         self.gene_seq = re.sub(r"\s+", "", str(file_name)).upper()
         #self.gene_seq = FastaFile(file_name).read_fasta()
         self.oligomer_size = int(oligomer_size)
         self.overlap_size = int(overlap_size)
         self.optimal_temp = round(float(optimal_temp), 4)
-        self.cluster_size = int(cluster_size)
         self.temp_range = float(temp_range)
-        self.cluster_range = int(cluster_range)
         self.user = str(user)
         self.seq_orientation = str(seq_orientation)
 
 class Assembly(Input):
 
-    def __init__(self, file_name, oligomer_size, overlap_size, optimal_temp, temp_range, cluster_size, cluster_range, seq_orientation, user):
-        super().__init__(file_name, oligomer_size, overlap_size, optimal_temp, temp_range, cluster_size, cluster_range, seq_orientation, user)
+    def __init__(self, file_name, oligomer_size, overlap_size, optimal_temp, temp_range, seq_orientation, user):
+        super().__init__(file_name, oligomer_size, overlap_size, optimal_temp, temp_range, seq_orientation, user)
         self.og = OligomerGroups(self.gene_seq, self.seq_orientation, self.oligomer_size, self.overlap_size, self.optimal_temp, self.temp_range)
-        self.c = Clusters(self.cluster_size, self.cluster_range)
+        self.c = Clusters()
 
     def oligomer_design(self):
 
@@ -42,7 +40,6 @@ class Assembly(Input):
 
         clusters, comp_clusters, cluster_five_two_three, cluster_ovr = self.c.complementary_clusters(final_oligomers, final_overlaps)
         score, fault, repeats = self.og.overlap_score(clusters, comp_clusters, cluster_five_two_three, cluster_ovr)
-        self.c.recommended_clusters(final_oligomers, final_overlaps)
 
         return comp_clusters, cluster_five_two_three, cluster_ovr, score, fault, repeats
 
