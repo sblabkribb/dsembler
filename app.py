@@ -83,7 +83,7 @@ def index():
 
         with sqlite3.connect(db_path) as con:
             cur = con.cursor()
-            cur.execute("INSERT INTO variables (user, short_gene_seq, gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, seq_orientation) VALUES (?,?,?,?,?,?,?,?)",(user, short_gene_seq, gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, seq_orientation) )
+            cur.execute("INSERT INTO variables (user, short_gene_seq, gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, seq_orientation) VALUES (?,?,?,?,?,?,?,?)",(user, short_gene_seq, gene_seq, oligomer_size, overlap_size, melting_temp, temp_range, seq_orient) )
             
             con.commit()
     else:
@@ -116,7 +116,7 @@ def prev_results(record_id):
     
     comp_clusters, cluster_five_two_three, cluster_ovr, score, fault, repeats = a.oligomer_design()
 
-    a.output(comp_clusters, cluster_five_two_three, cluster_ovr, score, fault, repeats)
+    clusters = a.output(comp_clusters, cluster_five_two_three, cluster_ovr, score, fault, repeats)
     return render_template("user.html", clusters=clusters)
 
 @app.route('/return-excel-file/<user>')
@@ -169,6 +169,7 @@ def login():
 
 @app.route('/user/<member>', methods=["POST", "GET"])
 def logged_user(member):
+    form = InputForm(request.form)
     if request.method == "POST":
         con = sqlite3.connect(db_path)
         con.row_factory=sqlite3.Row
@@ -177,7 +178,7 @@ def logged_user(member):
         cur.execute("select * from variables where user = ?", [member])
 
         rows = cur.fetchall()
-    return redirect(url_for('index'), rows=rows, login=True)
+    return render_template('form.html', form=form, rows=rows, login=True)
 
 
 @app.route('/logout')
