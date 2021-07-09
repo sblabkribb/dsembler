@@ -59,8 +59,6 @@ def index():
         overlap_size = form.overlap_size.data
         melting_temp = form.optimal_temp.data
         temp_range = form.temp_range.data
-       # cluster_size = form.cluster_size.data
-        #cluster_range = form.cluster_range.data
     
         if user_option == "y":
             user = request.form['user']
@@ -91,7 +89,7 @@ def index():
     else:
         user = None
     
-    return render_template("form.html", form = form, user=user)
+    return render_template("form.html", form=form, user=user)
         
 
 @app.route('/prev-results/<int:record_id>')
@@ -179,7 +177,7 @@ def logged_user(member):
         cur.execute("select * from variables where user = ?", [member])
 
         rows = cur.fetchall()
-    return render_template("form.html", rows=rows, login=True)
+    return redirect(url_for('index'), rows=rows, login=True)
 
 
 @app.route('/logout')
