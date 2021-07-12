@@ -99,34 +99,24 @@
                 
                 <br>
 
-<!--                <div class="row">
-                    <div class = "form-group col-md-10">
-                        {{ wtf.form_field(form.cluster_size, class='form-control', placeholder="Number of oligomers") }}
-                    </div>
-                    <div class="form-group col-md-2">
-                        {{ wtf.form_field(form.cluster_range, class='form-control') }}
-                    </div>
-                </div> -->
-                
+               <div class="form-check">
+                       <label class="form-check-label" for="seqOrient"> This is a circular sequence  </label>
+                       <input type="checkbox" value="c" class="form-check-input" name="seqorientation" id="seqOrient">
+                </div>
                 <br>
 
                 <div class="form-check">
-                       <label class="form-check-label" for="seqOrient"> This is a circular sequence  </label>
-                   <input type="checkbox" value="c" class="form-check-input" name="seqorientation" id="seqOrient">
-                </div>
-                <br>
-                <div class="row">
                     <div class = "form-group col-md-12">
                         <form action="/" method = "post">
                             <label for="myCheck"> Do you want to save these parameters?</label>
-                            <input type="checkbox" value="y" name="membercheckbox" id="myCheck" onclick="myFunction()"> 
+                            <input type="checkbox" value="y" class="form-check-input" name="membercheckbox" id="myCheck" onclick="myFunction()"> 
                             <br> 
                             <br>
                             <div id = "text" style="display:none">
                             <div class="form-group col-md-4">
                                 <h5>User ID: </h5>   
                                 <input type = "text" name="user" class="form-control" id="inputUsedId" placeholder="Enter User ID">
-                            </div>           
+                            </div>
                             </div>
                             <center>
                                 <button type="submit" class="btn btn-success">Submit</button>
@@ -231,6 +221,7 @@
                         <div class="form-group"> 
                         <h6>Name</h6>
                         <input type="text" name="name" class="form-control" id="inputMemberName" placeholder="Enter your Name">
+                        <br>
                         </div>
                         <h6>Username</h6>
                         <input type="text" name="username" class="form-control" id="inputMemberID" placeholder="Enter your user ID">
