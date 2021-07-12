@@ -12,7 +12,7 @@ $ ./docker_build.sh
 
 $ ./docker_run.sh
 ```
-==========================================================================
+=======================================================================
 ## Usage
 
 Detailed User Manual can be found at https://github.com/sblabkribb/dsembler/blob/main/manual.pdf
@@ -43,7 +43,7 @@ Login             | Previous Work
 
 Users can sign up and login to access their previous data. The database was created using the Flask-SQLite.
 
-==============================================================================
+=======================================================================
 
 ## Python 3.8.5
 ### Libraries used:
@@ -52,7 +52,7 @@ This extensive library was used to parse the FASTA files, calculate melting temp
 - Flask:
 This library/tool was used to make a simple web-based user interface. Related libraries such as Flask_bootstrap, wtforms, flask_SQLite supported the page as well
 
-==============================================================================
+=======================================================================
 ### Workflow
 
 The outputs inclue a textfile that shows the appropriate orientation of the oligomers, an excel file that includes all the sequences in 5' to 3' format as well as a scoring system, and a FASTA file containing meta data on all the oligomers. The algorithm is outlined below figure:
