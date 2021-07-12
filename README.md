@@ -55,6 +55,6 @@ This library/tool was used to make a simple web-based user interface. Related li
 =======================================================================
 ### Workflow
 
-The outputs inclue a textfile that shows the appropriate orientation of the oligomers, an excel file that includes all the sequences in 5' to 3' format as well as a scoring system, and a FASTA file containing meta data on all the oligomers. The algorithm is outlined below figure:
+The algorithm workflow is outlined below figure:
 
 ![Schematic](/images/workflow.png "Algorithm Workflow")
