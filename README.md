@@ -15,7 +15,7 @@ $ ./docker_run.sh
 =======================================================================
 ## Usage
 
-Detailed User Manual can be found at https://github.com/sblabkribb/dsembler/blob/main/manual.pdf
+Detailed User Manual can be found at https://github.com/sblabkribb/dsembler/blob/main/documents/manual.pdf
 
 The user interface is simple to navigate through as shown below:
 ![Screenshot](/images/main_form.png "Input Page")
