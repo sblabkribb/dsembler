@@ -1,4 +1,4 @@
-# DNA Assembly Designer
+# Dsembler
 
 DNA Assembly Designer is an easy to use web program for assembling short genomes that selects the best possible oligomer sequences based on the users' target parameters. 
 
