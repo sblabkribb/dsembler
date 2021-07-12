@@ -1,6 +1,6 @@
-# Dsembler
+# Dsembler (DNA Assembly Designer)
 
-DNA Assembly Designer is an easy to use web program for assembling short genomes that selects the best possible oligomer sequences based on the users' target parameters. 
+Dsembler is an easy to use web program for assembling short genomes that selects the best possible oligomer sequences based on the users' target parameters. 
 
 ## Installation
 Dsembler can be installed via GitHub. Users should have docker installed on their computer to run Dsembler locally. Docker can be downloaded from https://docs.docker.com/get-docker/ [Ensure your BIOS settings are compatible with the docker application]. Run the following commands on your terminal
