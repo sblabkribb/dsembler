@@ -52,21 +52,26 @@ class Sequence:
     @staticmethod
     # Reading fasta file to give the DNA sequence
     def read_fasta(file):
-
+        '''
+        :param file: file path (str)
+        :return seq: extracted gene sequence (str)
+        '''
         seq = None
 
         dna_seq = SeqIO.parse(file, "fasta")
-
+        # ensuring all data is capitalized for uniformity
         for seq_record in dna_seq:
-            seq = str(seq_record.seq).upper()  # ensuring all data is capitalized for uniformity
-        # returns a string
+            seq = str(seq_record.seq).upper()
+
         return seq
 
     # function for generating alternative complementary sequences
-    # input a list of sequences
     @staticmethod
     def complement_oli(data):
-
+        '''
+        :param data: list of (str) sequences
+        :return comp_list: list of (str) alternate sequences being complementary
+        '''
         comp_list = []
 
         for i in data:
@@ -75,13 +80,18 @@ class Sequence:
                 comp_list.append(i)
             else:
                 comp_list.append(i)
-        # returns a list containing the complementary sequences in order
+
         return comp_list
 
     # generating single list with all overlap regions
-    # input the list of oligomers and their respective overlap length
     @staticmethod
     def overlap_list(oligomer_list, overlap_length, length):
+        '''
+        :param oligomer_list: list of (str) oligomers
+        :param overlap_length: list of (int) overlap lengths
+        :param length: size of the oligomer list to be extracted (int)
+        :return overlaps: list of extracted (str) overlap sequences
+        '''
 
         overlaps = []
 
@@ -92,12 +102,16 @@ class Sequence:
                 overlaps.append(overlap)
             else:
                 pass
-        # returns a list of overlap sequences
+
         return overlaps
 
-    # input a list of sequences
+    # identifies sequences that have high sequence similarities
     @classmethod
     def overlap_alignment(cls, sequences):
+        '''
+        :param sequences: input a list of sequences
+        :return alignment_index: list of list containing the (int) indexes of high levels of alignments between 2 sequences
+        '''
 
         alignment_index = []
         repeats = 10
@@ -118,13 +132,16 @@ class Sequence:
             if align_ratio > 0.7:
                 index = [overlap_segments.index(a), overlap_segments.index(b)]
                 alignment_index.append(index)
-        # return a list of list containing the indexes of high levels of alignments between two sequences
+
         return alignment_index
 
     # orientates sequences in 5 to 3 format
-    # input a list of sequences
     @staticmethod
     def seq_orientation(sequences):
+        '''
+        :param sequences: list of (str) sequences
+        :return five_to_three: list of (str) alternate sequences being reverse complementary
+        '''
 
         five_to_three = []
 
@@ -145,6 +162,11 @@ class Sequence:
     # https://stackoverflow.com/questions/4664850/how-to-find-all-occurrences-of-a-substring
     @classmethod
     def repeat_seq(cls, data):
+        '''
+        :param data: list of sequences
+        :return y: list of list containing the (int) indexes of the repeats
+        :return s: list of list containing the (str) repeat sequences
+        '''
         x, y = [], []
         repeats = 10
         for i in data:
@@ -188,6 +210,9 @@ class Oligomers:
 
     # find the rough oligomer size if the assembly required is Circular
     def rough_oligo_size_cir(self):
+        '''
+        :return: an adjusted (int) rough oligomer length for circular assemblies
+        '''
         # find the even number when divided with the length of the given gene seq is closest to the user's inputted (rough oligomers)
         number = None
         for i in range(1, 100):
@@ -202,6 +227,11 @@ class Oligomers:
     # calculate overlap melting temperature of any oligomer (overlap) sequence
     # check if it falls within the target specifications
     def overlap_tm(self, data):
+        '''
+        :param data: sequence (str)
+        :return: fault "H" or "L" or True if there is no fault
+        :return: difference in temperature from the required (int)
+        '''
         melting_temp = round(mt.Tm_NN(data, nn_table=mt.DNA_NN3), 2)
         if self.low_tm <= melting_temp <= self.high_tm:
             return True, int(0)
@@ -214,6 +244,12 @@ class Oligomers:
 
     # adds the next few bases to an oligomer in an iterative manner
     def add_overlap(self, seq, oligo):
+        '''
+        :param seq: whole sequence for which oligomers are designed (str)
+        :param oligo: sequence of rough oligomer (str)
+        :return possible_oligomers: list of (str) an array of oligomers with varying overlaps
+        :return possible_overlaps: list of (int) varying overlaps lengths; corresponds to possible_oligomers
+        '''
         possible_overlaps, possible_overlaps_len, = [], []
         for overlap in range(self.low_overlap, self.high_overlap):
             overlap_seq = seq[:overlap]
@@ -226,6 +262,10 @@ class Oligomers:
     # check for the presence of a GC clamp at the 3' end
     @staticmethod
     def gc_clamp(data):
+        '''
+        :param data: sequence (str)
+        :return: boolean for the presence of GC clamp
+        '''
         gc = ["CCC", "GGG", "CCG", "CGC", "GCC", "GGC", "GCG", "CGG"]
         if any((t in data[-5:]) for t in gc):
             return True
@@ -235,6 +275,10 @@ class Oligomers:
     # checks for the presence of a GC clamp at the 3' end
     @staticmethod
     def t_3_end(data):
+        '''
+        :param data: sequence (str)
+        :return: boolean for the presence of T at the 3' end
+        '''
         if data[-1] == "T":
             return True
         else:
@@ -248,6 +292,16 @@ class Oligomers:
 
     # generates scores and suggests possible areas of error for each oligomer
     def overlap_score(self, clusters, comp_clusters, cluster_5_3, overlap):
+        '''
+        :param clusters: list of lists of (str) oligomers which are directly spliced from the original sequence
+        :param comp_clusters: list of lists of (str) with alternate complementary oligomers
+        :param cluster_5_3: list of lists of (str) oligomers with reverse complementary oligomers
+        :param overlap: list of lists of (int) overlap lengths corresponding to the above lists
+        :return score: list of lists of (int) each overlap's score
+        :return fault: list of lists of (str) each overlap's faults
+        :return oligomer_repeats: list of lists of (str) the 10bp repeats that occur within each individual oligomers
+        :return repeats: list of lists of (str) the 10bp repeats that occur between oligomer overlaps within a cluster
+        '''
         # generate empty lists with the same shape as the clusters generated
         score, fault, repeats, repeat_seq, oligomer_repeats, repeat_position = [], [], [], [], [], []
         for i in range(len(clusters)):
@@ -323,7 +377,7 @@ class Oligomers:
                     if self.gc_clamp(cluster_5_3[cluster][oligomer]) == True:
                         score[cluster][oligomer] += 1
                         fault[cluster][oligomer] += "G"
-        # returns nested lists containing the score, possible faults, and repeat positions (if any) for each oligomer
+
         return score, fault, oligomer_repeats, repeat_position
 
 # class that deals with multiple oligomers at a time
@@ -343,6 +397,9 @@ class OligomerGroups(Oligomers):
     # splicing into oligomers for linear assembly
     # input gene sequence (str), target oligomer size(int), and target overlap size(int)
     def oligomer_splice(self):
+        '''
+        :return: list of (str) oligomer sequences without overlaps
+        '''
 
         # calculates the size of oligomers without overlaps
         rough_oligo_list = []
@@ -358,12 +415,15 @@ class OligomerGroups(Oligomers):
             else:
                 rough_oligo_list.append(rough_oligo_list[0])
 
-        # returns list of oligomer sequences without overlaps
         return rough_oligo_list
 
     # generates an array of oligomers with varied lengths of overlaps (linear assembly)
     def oligomer_array(self, rough_oligo_list):
-
+        '''
+        :param rough_oligo_list: list of (str) oligomer sequences without overlaps
+        :return list_of_oligomers:  list of lists containing (str) oligomers with varying overlaps
+        :return overlap_length: list of lists containing (int) the corresponding overlap lengths
+        '''
         list_of_oligomers, overlap_length = [], []
 
         sequence = ''.join(rough_oligo_list)  # uses sequence created by the rough oligomers
@@ -374,11 +434,17 @@ class OligomerGroups(Oligomers):
             list_of_oligomers.append(possible_overlaps)
             overlap_length.append(possible_overlaps_len)
             seq = seq[self.rough_oligo_size:]
-        # returns two separate lists of lists that 1) contain oligomers with varying overlap lengths 2) their respective overlap lengths
+
         return list_of_oligomers, overlap_length
 
     # selects oligomers if they don't have T at 3' end
     def t_3_free(self, oligomer_list, overlap_length):
+        '''
+        :param oligomer_list: list of lists containing (str) oligomers with varying overlaps
+        :param overlap_length: list of lists containing (int) the corresponding overlap lengths
+        :return oligomer_list:  list of lists containing (str) oligomers without T at 3'
+        :return overlap_length: list of lists containing (int) the corresponding overlap lengths
+        '''
         for oligo_index in range(len(oligomer_list)):
             # removes oligomers if there is T at 3' (alternate sequences will be complementary in the output)
             if oligo_index % 2 == 0:
@@ -400,8 +466,13 @@ class OligomerGroups(Oligomers):
         return oligomer_list, overlap_length
 
     # selects the oligomers that fit the required GC range and Tm.
-    # input the list of all possible oligomers, and corresponding overlap lengths
     def gc_tm_optimal(self, list_of_oligomers, list_of_overlap_lengths):
+        '''
+        :param list_of_oligomers: list of lists containing (str) oligomers with varying overlaps
+        :param list_of_overlap_lengths: list of lists containing (int) the corresponding overlap lengths
+        :return optimal_oligomers:  list of lists containing (str) oligomers within the required GC and Tm
+        :return optimal_overlap_len: list of lists containing (int) the corresponding overlap lengths
+        '''
         optimal_oligomers, optimal_overlap_len = [], []
         comp_list = []
         # generating alternate complementary sequences to select based on melting temperature and GC
@@ -434,9 +505,14 @@ class OligomerGroups(Oligomers):
         return optimal_oligomers, optimal_overlap_len
 
     # selects the smallest oligomer from the possible optimal oligomers (cost effective)
-    # input the list of lists of optimal oligomers and corresponding overlap lengths
     def smallest_oligomers(self, optimal_oligomers, optimal_overlap_len, rough_oligo_list):
-
+        '''
+        :param optimal_oligomers: list of lists containing (str) oligomers with varying overlaps
+        :param optimal_overlap_len: list of lists containing (int) the corresponding overlap lengths
+        :param rough_oligo_list: list of (str) rough oligomers (without overlaps)
+        :return smallest_oligomers:  list of (str) oligomers that were smallest from the inputted list
+        :return smallest_overlap_len: list (int) corresponding overlap lengths
+        '''
         smallest_oligomers, smallest_overlap_len = [], []
 
         for oligomer_index in range(len(optimal_oligomers)):
@@ -455,7 +531,7 @@ class OligomerGroups(Oligomers):
                 smallest_oligomers[-1] = smallest_oligomers[-1] + rough_oligo_list[-1][
                                                                   smallest_overlap_len[-1]:(
                                                                      smallest_overlap_len[-1] + r)]
-        # returns 2 lists that contain the oligomer sequences and overlap lengths
+
         return smallest_oligomers, smallest_overlap_len
 
 # class that works with oligomer clusters
@@ -463,6 +539,14 @@ class Clusters:
     # make clusters based on alignment score
     # input list of oligomers and their respective overlap lengths; the (int) user input of cluster size and cluster range
     def complementary_clusters(self, oligomers, overlap_len):
+        '''
+        :param oligomers: list of (str) oligomers
+        :param overlap_len: list of (int) corresponding overlap lengths
+        :return clusters: list of lists of (str) oligomers which are directly spliced from the original sequence
+        :return comp_clusters: list of lists of (str) with alternate complementary oligomers
+        :return cluster_5_3: list of lists of (str) oligomers with reverse complementary oligomers
+        :return overlap: list of lists of (int) overlap lengths corresponding to the above lists
+        '''
 
         comp_list, five_to_three = Sequence.complement_oli(oligomers), Sequence.seq_orientation(oligomers)
 
@@ -503,5 +587,5 @@ class Clusters:
             cluster_ovr.append(overlap)
             comp_clusters.append(comp_list)
             cluster_five_two_three.append(five_to_three)
-        # returns three list of lists containing oligomers and their respective overlap lengths in appropriate clusters sizes
+
         return clusters, comp_clusters, cluster_five_two_three, cluster_ovr
