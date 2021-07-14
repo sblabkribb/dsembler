@@ -23,7 +23,7 @@ assembly.py
 -| Sequence
     -| @staticmethod read_fasta(file)
     -| @staticmethod complement_oli(data)
-    -| @staticmethod overlap_list(data)
+    -| @staticmethod overlap_list(oligomer, overlap_len, length)
     -| @staticmethod overlap_alignment(sequences)
     -| @staticmethod seq_orientation(sequences)
     -| @staticmethod repeat_seq(data)
@@ -81,14 +81,17 @@ class Sequence:
     # generating single list with all overlap regions
     # input the list of oligomers and their respective overlap length
     @staticmethod
-    def overlap_list(oligomer_list, overlap_length):
+    def overlap_list(oligomer_list, overlap_length, length):
 
         overlaps = []
 
-        for oligomer in oligomer_list:
+        for oligomer in oligomer_list[:length]:
             overlap_len = overlap_length[oligomer_list.index(oligomer)]
-            overlap = oligomer[-overlap_len:]
-            overlaps.append(overlap)
+            if overlap_len != 0:
+                overlap = oligomer[-overlap_len:]
+                overlaps.append(overlap)
+            else:
+                pass
         # returns a list of overlap sequences
         return overlaps
 
@@ -160,7 +163,7 @@ class Sequence:
             matches = re.finditer(repeat, "".join(data))
             matches_position = [match.start() for match in matches]
             y.append(matches_position)
-        return y
+        return y, s
 
 # class that acts on individual oligomer sequences
 class Oligomers:
@@ -171,14 +174,14 @@ class Oligomers:
         self.gene_seq = gene_seq
         self.assembly_type = assembly_type
         self.oligomer_size = oligomer_size
-        self.overlap_size = overlap_size
-        self.rough_oligo_size = self.oligomer_size - self.overlap_size
-        self.low_overlap = int(self.overlap_size - (self.overlap_size / 4))  # calculates the shortest possible overlap length
+        self.rough_oligo_size = oligomer_size - overlap_size
+        # uses user input as shortest possible overlap length
+        self.low_overlap = overlap_size
         # calculates the longest possible overlap length
         if self.assembly_type == "l":
-            self.high_overlap = int(self.overlap_size * 3 / 2)
+            self.high_overlap = int(overlap_size * 3 / 2)
         elif self.assembly_type == "c":
-            self.high_overlap = int(self.overlap_size * 4 / 3)
+            self.high_overlap = int(overlap_size * 4 / 3)
         self.optimal_temp = optimal_tm
         self.temp_range = temp_range
         self.low_tm = optimal_tm - temp_range  # lower melting temperature
@@ -186,7 +189,7 @@ class Oligomers:
 
     # find the rough oligomer size if the assembly required is Circular
     def rough_oligo_size_cir(self):
-        # find the even number when divided with the length of the given gene seq is closest to the user's inputed (rough oligomers)
+        # find the even number when divided with the length of the given gene seq is closest to the user's inputted (rough oligomers)
         number = None
         for i in range(1, 100):
             number = len(self.gene_seq) / (i * 2)
@@ -246,35 +249,44 @@ class Oligomers:
 
     # generates scores and suggests possible areas of error for each oligomer
     def overlap_score(self, clusters, comp_clusters, cluster_5_3, overlap):
+        # generate empty lists with the same shape as the clusters generated
         score, fault, repeats, repeat_seq, repeat_position = [], [], [], [], []
         for i in range(len(clusters)):
             s, f, r, rs, rp = [], [], [], [], []
             for x in range(len(clusters[i])):
+                # stores overlap score
                 s.append(0)
+                # stores overlap faults
                 f.append([])
+                # stores sequence repeats
                 rp.append([])
             score.append(s)
             fault.append(f)
             repeats.append(r)
             repeat_seq.append(rs)
             repeat_position.append(rp)
+
         cluster_length = []
         if len(clusters) == 1:
             cluster_length.append(0)
         else:
             for i in range(len(clusters)):
                 cluster_length.append(i)
+
         for cluster in cluster_length:
-            g = []
-            for x in range(len(clusters[cluster]) - 1):
-                overla = overlap[cluster][x]
-                data_to_put = clusters[cluster][x][-overla:]
-                g.append(data_to_put)
-                d = "".join(g)
-            s = Sequence.repeat_seq(g)
-            for i in s:
+            # recognizes repeats within each oligomer
+            for x in range(len(clusters[cluster])):
+                seq_repeat_index, seq_repeat = Sequence.repeat_seq([clusters[cluster][x]])
+                for count in seq_repeat:
+                    score[cluster][x] += 10
+                    fault[cluster][x] += "r"
+                    repeat_seq[cluster].append(count.lower())
+            # recognizes repeats between overlaps in a cluster
+            data = Sequence.overlap_list(clusters[cluster], overlap[cluster], len(clusters[cluster]) -1)
+            s, o = Sequence.repeat_seq(data)
+            for i in o:
                 for a in i:
-                    seq_repeat = d[a:a + 11]
+                    seq_repeat = a
                     match_index = [clusters[cluster].index(h) for h in clusters[cluster] if seq_repeat in h]
                 if len(match_index) > 1:
                     for l in match_index:
@@ -289,24 +301,30 @@ class Oligomers:
                         for u in y:
                             if x == u:
                                 repeat_position[cluster][x].append(repeat_seq[cluster][repeats[cluster].index(y)])
+
         for cluster in range(len(comp_clusters)):
             for oligomer in range(len(comp_clusters[cluster])):
                 overlap_size = overlap[cluster][oligomer]
                 clust = comp_clusters[cluster][oligomer]
+                # checks if the overlap fits the specified criteria
                 if overlap_size != 0:
                     comp_overlap = clust[-overlap_size:]
                     overlap_tm, difference = self.overlap_tm(comp_overlap)
+                    # temperature
                     if overlap_tm != True:
                         score[cluster][oligomer] += difference
                         fault[cluster][oligomer] += overlap_tm
                     if overlap_tm == "H":
                         if overlap_size > int(overlap_size - (overlap_size / 4)):
+                            # Thymine at 3' end
                             if cluster_5_3[cluster][oligomer][-2] == "T":
                                 score[cluster][oligomer] += 1
                                 fault[cluster][oligomer] += "T"
+                    # GC clamp
                     if self.gc_clamp(cluster_5_3[cluster][oligomer]) == True:
                         score[cluster][oligomer] += 1
                         fault[cluster][oligomer] += "G"
+        # returns nested lists containing the score, possible faults, and repeat positions (if any) for each oligomer
         return score, fault, repeat_position
 
 # class that deals with multiple oligomers at a time
@@ -453,29 +471,39 @@ class Clusters:
 
         oligos = oligomers
         overlap = overlap_len
-
-        while oligos:
+        while len(oligos) > 1:
             for cluster_length in range(1, 30):
-                alignment = Sequence.repeat_seq(
-                    Sequence.overlap_list(oligos[:cluster_length], overlap[:cluster_length]))
+                alignment, seq_repeat = Sequence.repeat_seq(
+                    Sequence.overlap_list(oligos[:cluster_length], overlap[:cluster_length], len(oligos[:cluster_length])))
                 if len(alignment) > 0:
                     break
 
-            index = cluster_length - 1
-            oligomers = oligos[:index]
-            overlap_len = overlap[:index]
+            if cluster_length > 1:
+                index = cluster_length -1
+            else:
+                index = cluster_length
+
+            oligomer = oligos[:index]
+
+            overlap_length = overlap[:index]
+            complementary_cluster = comp_list[:index]
+            final_cluster = five_to_three[:index]
 
             oligos = oligos[index:]
             overlap = overlap[index:]
-
-            complementary_cluster = comp_list[:index]
-            final_cluster = five_to_three[:index]
             comp_list = comp_list[index:]
             five_to_three = five_to_three[index:]
 
-            clusters.append(oligomers)
-            cluster_ovr.append(overlap_len)
+            clusters.append(oligomer)
+            cluster_ovr.append(overlap_length)
             comp_clusters.append(complementary_cluster)
             cluster_five_two_three.append(final_cluster)
+
+        if len(oligos) == 1:
+            clusters.append(oligos)
+            cluster_ovr.append(overlap)
+            comp_clusters.append(comp_list)
+            cluster_five_two_three.append(five_to_three)
+
         # returns three list of lists containing oligomers and their respective overlap lengths in appropriate clusters sizes
         return clusters, comp_clusters, cluster_five_two_three, cluster_ovr
