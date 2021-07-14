@@ -81,18 +81,21 @@ class Sequence:
     # generating single list with all overlap regions
     # input the list of oligomers and their respective overlap length
     @staticmethod
+    # check overlap alignment of a given list
     def overlap_list(oligomer_list, overlap_length):
 
         overlaps = []
 
         for oligomer in oligomer_list:
             overlap_len = overlap_length[oligomer_list.index(oligomer)]
-            overlap = oligomer[-overlap_len:]
-            overlaps.append(overlap)
+            if overlap_len != 0:
+                overlap = oligomer[-overlap_len:]
+                overlaps.append(overlap)
+            else:
+                pass
         # returns a list of overlap sequences
         return overlaps
 
-    # check overlap alignment of a given list
     # input a list of sequences
     @classmethod
     def overlap_alignment(cls, sequences):
@@ -173,7 +176,8 @@ class Oligomers:
         self.oligomer_size = oligomer_size
         self.overlap_size = overlap_size
         self.rough_oligo_size = self.oligomer_size - self.overlap_size
-        self.low_overlap = int(self.overlap_size - (self.overlap_size / 4))  # calculates the shortest possible overlap length
+        self.low_overlap = self.overlap_size
+        #self.low_overlap = int(self.overlap_size - (self.overlap_size / 4))  # calculates the shortest possible overlap length
         # calculates the longest possible overlap length
         if self.assembly_type == "l":
             self.high_overlap = int(self.overlap_size * 3 / 2)
@@ -454,14 +458,17 @@ class Clusters:
         oligos = oligomers
         overlap = overlap_len
 
-        while oligos:
+        while len(oligos) > 1:
             for cluster_length in range(1, 30):
                 alignment = Sequence.repeat_seq(
                     Sequence.overlap_list(oligos[:cluster_length], overlap[:cluster_length]))
                 if len(alignment) > 0:
                     break
+            if cluster_length != 1:
+                index = cluster_length - 1
+            else:
+                index = cluster_length
 
-            index = cluster_length - 1
             oligomers = oligos[:index]
             overlap_len = overlap[:index]
 
@@ -477,5 +484,11 @@ class Clusters:
             cluster_ovr.append(overlap_len)
             comp_clusters.append(complementary_cluster)
             cluster_five_two_three.append(final_cluster)
+
+        if len(oligos) == 1:
+            clusters.append(oligos)
+            cluster_ovr.append(overlap)
+            comp_clusters.append(comp_list)
+            cluster_five_two_three.append(five_to_three)
         # returns three list of lists containing oligomers and their respective overlap lengths in appropriate clusters sizes
         return clusters, comp_clusters, cluster_five_two_three, cluster_ovr
