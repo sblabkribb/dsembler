@@ -39,9 +39,9 @@ class Assembly(Input):
         final_oligomers, final_overlaps = self.og.smallest_oligomers(g_oligomers, g_overlaps, rough_list)
 
         clusters, comp_clusters, cluster_five_two_three, cluster_ovr = self.c.complementary_clusters(final_oligomers, final_overlaps)
-        score, fault, repeats = self.og.overlap_score(clusters, comp_clusters, cluster_five_two_three, cluster_ovr)
+        score, fault, oligomer_repeats, repeats = self.og.overlap_score(clusters, comp_clusters, cluster_five_two_three, cluster_ovr)
 
-        return comp_clusters, cluster_five_two_three, cluster_ovr, score, fault, repeats
+        return comp_clusters, cluster_five_two_three, cluster_ovr, score, fault, oligomer_repeats
 
     def output(self, comp_clusters, cluster_five_to_three, overlap_cluster, score, fault, repeats):
         workbook = xlsxwriter.Workbook(
@@ -72,7 +72,7 @@ class Assembly(Input):
                 worksheet.write(0, 5, 'Melting Temperature of overlap')
                 worksheet.write(0, 6, 'Overlap Score')
                 worksheet.write(0, 7, 'Cause of errors')
-                worksheet.write(0, 8, 'Repeat Sequences')
+                worksheet.write(0, 8, 'Repeat Sequences within the oligomer')
                 worksheet.write(row, col, f'Cluster {cluster + 1}')
                 worksheet.write(row, col + 1, f'oligomer {oligomer + 1}')
                 worksheet.write(row, col + 2, oligo)

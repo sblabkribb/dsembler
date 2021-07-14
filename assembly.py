@@ -249,7 +249,7 @@ class Oligomers:
     # generates scores and suggests possible areas of error for each oligomer
     def overlap_score(self, clusters, comp_clusters, cluster_5_3, overlap):
         # generate empty lists with the same shape as the clusters generated
-        score, fault, repeats, repeat_seq, repeat_position = [], [], [], [], []
+        score, fault, repeats, repeat_seq, oligomer_repeats, repeat_position = [], [], [], [], [], []
         for i in range(len(clusters)):
             s, f, r, rs, rp = [], [], [], [], []
             for x in range(len(clusters[i])):
@@ -263,6 +263,7 @@ class Oligomers:
             fault.append(f)
             repeats.append(r)
             repeat_seq.append(rs)
+            oligomer_repeats.append(rp)
             repeat_position.append(rp)
 
         cluster_length = []
@@ -277,9 +278,9 @@ class Oligomers:
             for x in range(len(clusters[cluster])):
                 seq_repeat_index, seq_repeat = Sequence.repeat_seq([clusters[cluster][x]])
                 for count in seq_repeat:
-                    score[cluster][x] += 10
+                    score[cluster][x] += 1
                     fault[cluster][x] += "r"
-                    repeat_seq[cluster].append(count.lower())
+                oligomer_repeats[cluster][x] =  [seq.lower() for seq in seq_repeat]
             # recognizes repeats between overlaps in a cluster
             data = Sequence.overlap_list(clusters[cluster], overlap[cluster], len(clusters[cluster]) -1)
             s, o = Sequence.repeat_seq(data)
@@ -296,10 +297,9 @@ class Oligomers:
                     repeat_seq[cluster].append(seq_repeat)
             for x in range(len(repeat_position[cluster])):
                 if overlap[cluster][x] != 0:
-                    for y in repeats[cluster]:
-                        for u in y:
-                            if x == u:
-                                repeat_position[cluster][x].append(repeat_seq[cluster][repeats[cluster].index(y)])
+                    for y in repeat_seq[cluster]:
+                        if x == y.upper():
+                            repeat_position[cluster][x].append(repeat_seq[cluster][repeats[cluster].index(y)])
 
         for cluster in range(len(comp_clusters)):
             for oligomer in range(len(comp_clusters[cluster])):
@@ -324,7 +324,7 @@ class Oligomers:
                         score[cluster][oligomer] += 1
                         fault[cluster][oligomer] += "G"
         # returns nested lists containing the score, possible faults, and repeat positions (if any) for each oligomer
-        return score, fault, repeat_position
+        return score, fault, oligomer_repeats, repeat_position
 
 # class that deals with multiple oligomers at a time
 class OligomerGroups(Oligomers):
