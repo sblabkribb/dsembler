@@ -95,7 +95,6 @@ class Sequence:
         # returns a list of overlap sequences
         return overlaps
 
-    # check overlap alignment of a given list
     # input a list of sequences
     @classmethod
     def overlap_alignment(cls, sequences):
@@ -504,6 +503,5 @@ class Clusters:
             cluster_ovr.append(overlap)
             comp_clusters.append(comp_list)
             cluster_five_two_three.append(five_to_three)
-
         # returns three list of lists containing oligomers and their respective overlap lengths in appropriate clusters sizes
         return clusters, comp_clusters, cluster_five_two_three, cluster_ovr
