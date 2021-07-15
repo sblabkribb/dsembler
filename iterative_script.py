@@ -121,7 +121,7 @@ total = {"Oligomer": [],
 N = len(oligomer_size) * len(overlap_size) * len(melting_temp)
 pbar = ProgressBar(widgets=[Bar('>', '[', ']'), ' ', Percentage(), ' ', ETA()],maxval=N)
 
-print("Identifying the best combination of oligomer size, overlap size, and overlap melting temperature")
+print("Identifying the best combination(s) of oligomer size, overlap size, and overlap melting temperature")
 # identifies the best combination of oligomer size, overlap size, and overlap tm by iterating over by the number of times as specified earlier
 for oligo in pbar(oligomer_size):
     for overlap in overlap_size:
@@ -142,7 +142,6 @@ indices = [i for i, x in enumerate(total["Score"]) if x == final_score]
 
 user = round(time.time())
 os.mkdir(f'/app/output_script/{user}')
-os.chdir(f'/app/output_script/{user}')
 
 # generate the output files for each of the combinations identified earlier
 for index in indices:
@@ -151,6 +150,8 @@ for index in indices:
     final_melting_temp = total["Melting_Temp"][index]
     a = Assembly(str(file_name), final_oligomer, final_overlap, final_melting_temp, str(seq_orientation))
     comp_clusters, cluster_five_two_three, cluster_ovr, score, fault, repeats = a.oligomer_design()
+    os.chdir(f'/app/output_script/{user}')
     a.output(comp_clusters, cluster_five_two_three, cluster_ovr, score, fault, repeats)
+    os.chdir('/app')
 
-os.chdir('/app')
+
