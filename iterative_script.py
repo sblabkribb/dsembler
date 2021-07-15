@@ -1,5 +1,5 @@
 # import all the required packages and classes
-from assembly_oop import Sequence, OligomerGroups, Clusters
+from assembly import Sequence, OligomerGroups, Clusters
 from Bio.SeqUtils import MeltingTemp as mt
 from Bio.SeqRecord import SeqRecord
 from Bio import SeqIO
