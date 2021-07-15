@@ -9,6 +9,7 @@ import time
 import xlsxwriter
 from itertools import chain
 import decimal
+import os
 
 # initiate the parser
 # can't import classes from script.py as it would run the script.py file as well
@@ -40,7 +41,6 @@ class Assembly():
         self.seq_orientation = seq_orientation
         self.og = OligomerGroups(self.gene_seq, self.seq_orientation, self.oligomer_size, self.overlap_size, self.optimal_temp, self.temp_range)
         self.c = Clusters()
-        self.user = round(time.time())
 
     def oligomer_design(self):
 
@@ -55,8 +55,11 @@ class Assembly():
         return comp_clusters, cluster_five_two_three, cluster_ovr, score, fault, repeats
 
     def output(self, comp_clusters, cluster_five_to_three, overlap_cluster, score, fault, repeats):
+        user = round(time.time())
+        os.mkdir(f'/app/output_script/{user}')
+        os.chdir(f'/app/output_script/{user}')
         workbook = xlsxwriter.Workbook(
-            f'output/oligomers_{self.user}_{self.oligomer_size}_{self.overlap_size}_{self.optimal_temp}_{self.seq_orientation}.xlsx')
+            f'oligomers_{self.oligomer_size}_{self.overlap_size}_{self.optimal_temp}_{self.seq_orientation}.xlsx')
         worksheet = workbook.add_worksheet()
         row = 1
         col = 0
@@ -97,10 +100,11 @@ class Assembly():
         workbook.close()
 
         SeqIO.write(fasta_records,
-                    f'output/oligomers_{self.user}_{self.oligomer_size}_{self.overlap_size}_{self.optimal_temp}_{self.seq_orientation}.fasta',
+                    f'oligomers_{self.oligomer_size}_{self.overlap_size}_{self.optimal_temp}_{self.seq_orientation}.fasta',
                     "fasta")
         print(
-            f'oligomers_{self.user}_{self.oligomer_size}_{self.overlap_size}_{self.optimal_temp}_{self.seq_orientation} as fasta and xlsx files')
+            f'oligomers_{self.oligomer_size}_{self.overlap_size}_{self.optimal_temp}_{self.seq_orientation} as fasta and xlsx files')
+        os.chdir('/app')
         return cluster_five_to_three
 
 # user input of the file name and seq_orientation
