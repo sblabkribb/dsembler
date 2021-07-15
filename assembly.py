@@ -524,6 +524,7 @@ class OligomerGroups(Oligomers):
             if len(rough_oligo_list[-1]) > optimal_overlap_len[0][-1]:
                 smallest_oligomers.append(rough_oligo_list[-1])
                 smallest_overlap_len.append(0)
+            smallest_overlap_len[-1] = 0 # linear assembly final oligomers don't have overlaps
         else:
             if not len(rough_oligo_list) % 2 == 0 & len(
                     smallest_oligomers[-1]) < self.rough_oligo_size + self.high_overlap:

@@ -5,6 +5,7 @@ from main import Assembly
 from input import InputForm
 import os.path
 import time
+import glob
 
 app = Flask(__name__)
 Bootstrap(app)
@@ -121,12 +122,15 @@ def prev_results(record_id):
 
 @app.route('/return-excel-file/<user>')
 def excel_file(user):
-    return send_file(f'/app/output/oligomers_{user}.xlsx', as_attachment=True)
-
+    for filename in glob.glob('/app/output/*.xlsx'):
+        if user in filename:
+            return send_file(filename, as_attachment=True)
 
 @app.route('/return-fasta-files/<user>')
 def fasta_files(user):
-    return send_file(f'/app/output/oligomers_{user}.fasta', as_attachment=True)
+    for filename in glob.glob('/app/output/*.fasta'):
+        if user in filename:
+            return send_file(filename, as_attachment=True)
     
 
 @app.route('/signup/',methods = ['POST', 'GET'])

@@ -45,7 +45,7 @@ class Assembly(Input):
 
     def output(self, comp_clusters, cluster_five_to_three, overlap_cluster, score, fault, repeats):
         workbook = xlsxwriter.Workbook(
-            f'/app/output/oligomers_{self.user}.xlsx')
+            f'/app/output/oligomers_{self.user}_{self.oligomer_size}_{self.overlap_size}_{int(self.optimal_temp)}_{self.seq_orientation}.xlsx')
         worksheet = workbook.add_worksheet()
         row = 1
         col = 0
@@ -86,7 +86,7 @@ class Assembly(Input):
         workbook.close()
 
         SeqIO.write(fasta_records,
-                    f'/app/output/oligomers_{self.user}.fasta',
+                    f'/app/output/oligomers_{self.user}_{self.oligomer_size}_{self.overlap_size}_{int(self.optimal_temp)}_{self.seq_orientation}.fasta',
                     "fasta")
         return cluster_five_to_three
 
