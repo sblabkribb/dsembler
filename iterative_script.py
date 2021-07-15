@@ -10,6 +10,7 @@ import xlsxwriter
 from itertools import chain
 import decimal
 import os
+from progressbar import ProgressBar, Percentage, Bar, ETA
 
 # initiate the parser
 # can't import classes from script.py as it would run the script.py file as well
@@ -55,9 +56,6 @@ class Assembly():
         return comp_clusters, cluster_five_two_three, cluster_ovr, score, fault, repeats
 
     def output(self, comp_clusters, cluster_five_to_three, overlap_cluster, score, fault, repeats):
-        user = round(time.time())
-        os.mkdir(f'/app/output_script/{user}')
-        os.chdir(f'/app/output_script/{user}')
         workbook = xlsxwriter.Workbook(
             f'oligomers_{self.oligomer_size}_{self.overlap_size}_{self.optimal_temp}_{self.seq_orientation}.xlsx')
         worksheet = workbook.add_worksheet()
@@ -104,7 +102,6 @@ class Assembly():
                     "fasta")
         print(
             f'oligomers_{self.oligomer_size}_{self.overlap_size}_{self.optimal_temp}_{self.seq_orientation} as fasta and xlsx files')
-        os.chdir('/app')
         return cluster_five_to_three
 
 # user input of the file name and seq_orientation
@@ -120,8 +117,13 @@ total = {"Oligomer": [],
          "Melting_Temp": [],
          "Score": []}
 
+# initiate the progress bar
+N = len(oligomer_size) * len(overlap_size) * len(melting_temp)
+pbar = ProgressBar(widgets=[Bar('>', '[', ']'), ' ', Percentage(), ' ', ETA()],maxval=N)
+
+print("Identifying the best combination of oligomer size, overlap size, and overlap melting temperature")
 # identifies the best combination of oligomer size, overlap size, and overlap tm by iterating over by the number of times as specified earlier
-for oligo in oligomer_size:
+for oligo in pbar(oligomer_size):
     for overlap in overlap_size:
         for temp in melting_temp:
             a = Assembly(str(file_name), oligo, overlap, temp, str(seq_orientation))
@@ -138,6 +140,10 @@ final_score = min(total["Score"])
 # pick out all instances with the lowest score
 indices = [i for i, x in enumerate(total["Score"]) if x == final_score]
 
+user = round(time.time())
+os.mkdir(f'/app/output_script/{user}')
+os.chdir(f'/app/output_script/{user}')
+
 # generate the output files for each of the combinations identified earlier
 for index in indices:
     final_overlap = total["Overlap"][index]
@@ -146,3 +152,5 @@ for index in indices:
     a = Assembly(str(file_name), final_oligomer, final_overlap, final_melting_temp, str(seq_orientation))
     comp_clusters, cluster_five_two_three, cluster_ovr, score, fault, repeats = a.oligomer_design()
     a.output(comp_clusters, cluster_five_two_three, cluster_ovr, score, fault, repeats)
+
+os.chdir('/app')
