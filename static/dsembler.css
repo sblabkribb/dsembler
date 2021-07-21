@@ -1,0 +1,15 @@
+.container-sm {
+    max-width: 800px
+}
+
+.head {
+    font-family: 'Montserrat', sans-serif;
+}
+
+.p1 {
+    font-family: 'Poppins', sans-serif;
+}
+
+h6.display-7{
+    font-size: 2rem;
+}

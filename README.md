@@ -6,9 +6,9 @@ Dsembler is an easy to use web program for assembling short genomes that selects
 
 Dsembler can be installed via GitHub. Users should have docker installed on their computer to run Dsembler locally. Docker can be downloaded from <https://docs.docker.com/get-docker/> [Ensure your BIOS settings are compatible with the docker application]. Run the following commands on your terminal
 ```
-git clone https://github.com/sblabkribb/dsembler-dev.git
+git clone https://github.com/sblabkribb/dsembler.git
 ```
-Move to the dsembler-dev directory
+Move to the dsembler directory
 
 ### Build docker image build
 ```

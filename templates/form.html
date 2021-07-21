@@ -1,0 +1,269 @@
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block head %}
+    <!-- Bootstrap CSS files -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    
+    <link rel="stylesheet" href="/static/dsembler.css">
+
+    <!-- JavaScript files -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+
+    <script src="static/dsembler.js"></script>
+
+    <!-- Fonts -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap');
+    </style> 
+
+    <!-- Title -->
+    <title>Dsembler</title>
+{% endblock head %}
+
+{% block content %}
+
+    <header class = "navbar navbar-expand-md navbar-dark bg-dark bd-navbar">
+        <nav class = "container-sm flex-wrap flex-md-nowrap" aria-label="Main navigation">
+            <a class="navbar-brand p-0" href="/" aria-label="Dsembler"> Home </a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"> </span>
+          </button>
+          <div class="col-md-8 collapse navbar-collapse">
+              <ul class="navbar-nav flex-row flex-wrap bd-navbar-nav pt-2 py-md-0">
+                  <li class="nav-item nav-link active"> Form </li></a>
+                  <li class="nav-item nav-link" href="#"> Protocol </li>
+                  <a class="nav-item nav-link" href="https://github.com/sblabkribb/dsembler/blob/main/docs/manual.pdf" target="_blank"> Manual </a>
+                  <a class="nav-item nav-link" href="dsembler_documentation.html" target="_blank">Documentation</a>
+              </ul>
+              <ul class="navbar-nav flex-row flex-wrap ms-md-auto">
+                <a data-toggle="modal" data-target="#loginModal"class="navbar-item nav-link" aria-label="Dsembler"> Previous Work </a>
+                <a data-toggle="modal" data-target="#signUpModal" class="navbar-item nav-link" aria-label="Dsembler"> Sign Up </a>  
+              </ul>
+          </div>
+        </nav>
+    </header>
+
+    <div class="container-sm flex"><br>
+        <h1 style="font-family:'Montserrat', sans-serif;">Dsembler</h1>
+        <h4>DNA Assembly Designer</h4>
+        <hr>
+        <div class="row align-items-center justify-content-center"></div>
+        <div class="col-md-12">
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            <span>{{ message }}</span>
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}    
+
+            <form action = "{{ url_for('index') }}" method = "POST" role="form", enctype="multipart/form-data">
+
+                {{ form.csrf }}
+                
+                <div class="form-group">
+                    {{ wtf.form_field(form.gene_seq, class='form-control', placeholder="Gene Sequence") }}
+                </div>
+
+                <br>
+
+                <div class="form-group"> 
+                    {{ wtf.form_field(form.oligomer_size, class='form-control', placeholder="Nucleotides") }}
+                </div>
+                
+                <br>
+                
+                <div class="form-group">
+                    {{ wtf.form_field(form.overlap_size, class='form-control', placeholder="Nucleotides") }}
+                </div>
+                
+                <br>
+                
+                <div class="row">
+                    <div class = "form-group col-md-10">
+                        {{ wtf.form_field(form.optimal_temp, class='form-control', placeholder="C") }}
+                    </div>
+                    <div class="form-group col-md-2">
+                        {{ wtf.form_field(form.temp_range, class='form-control') }}
+                    </div>
+                </div>
+                
+                <br>
+
+               <div class="form-check">
+                       <label class="form-check-label" for="seqOrient"> This is a circular sequence  </label>
+                       <input type="checkbox" value="c" class="form-check-input" name="seqorientation" id="seqOrient">
+                </div>
+                <br>
+
+                <div class="form-check">
+                    <div class = "form-group col-md-12">
+                        <form action="/" method = "post">
+                            <label for="myCheck"> Do you want to save these parameters?</label>
+                            <input type="checkbox" value="y" class="form-check-input" name="membercheckbox" id="myCheck" onclick="myFunction()"> 
+                            <br> 
+                            <br>
+                            <div id = "text" style="display:none">
+                            <div class="form-group col-md-4">
+                                <h5>User ID: </h5>   
+                                <input type = "text" name="user" class="form-control" id="inputUsedId" placeholder="Enter User ID">
+                            </div>
+                            </div>
+                            <center>
+                                <button type="submit" class="btn btn-success">Submit</button>
+                            </center>
+                        </form>
+                    </div>
+                </div> 
+            </form>
+        </div>
+    </div>
+    <div class="container-sm"><br>
+        <a href="{{ url_for('index') }}"><button class='btn btn-secondary'>Refresh</button></a>
+        {% if user %}
+            <center>
+                <a href="{{url_for('excel_file', user = user) }}" target="blank"><button class='btn btn-info btn-lg'>Excel File</button></a>
+                <a href="{{url_for('fasta_files', user = user) }}" target="blank"><button class='btn btn-info btn-lg'>FASTA File</button></a>
+            </center>
+        {% endif %}
+    </div>
+
+    
+    {% if login == True %}
+
+            <div class="item-list-table">
+                
+                <div class="container-sm mb=3 mt-3">
+            
+                <table id="item-list-table" class="table table-bordered" >
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Target sequence</th>
+                            <th>Oligomer size</th>
+                            <th>Overlap size</th>
+                            <th>Optimal Melting Temp.</td>
+                            <th>+- (C)</th>
+                            <th>Seq Orientation </th>
+                        </tr>
+                    </thead>
+            
+                </div>
+                </div>
+            
+                <div class = "container-sm">
+                    {% if rows != None %}
+                        {% for row in rows %}
+                            <tr>
+                            <td><a href="{{url_for('prev_results', record_id = row['id']) }}" onclick='$("div[name$=divToShow]").toggle()' target="_blank"><input type="submit" name="edit_btn" value="+"rel="tooltip" class="btn btn-info"></a></td>
+                            <td>{{row["short_gene_seq"]}}</td>
+                            <td>{{row["oligomer_size"]}}</td>
+                            <td>{{row['overlap_size']}}</td>
+                            <td>{{row["melting_temp"]}}</td>
+                            <td>{{row["temp_range"]}}</td>
+                            <td>{{row["seq_orientation"]}}</td>
+                            </tr>
+                        {% endfor %}
+                    {% endif %}
+            </table>
+            <a href="{{ url_for('logout')}}"> Log Out </a>
+            <div id="resultsModal" class="modal fade" role="dialog">
+                <div class="modal-dialog modal-dialog-centered">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Sign Up</h4> 
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form action="/signup/" method="POST">
+                            <div class = "container-sm">
+                            <div class="form-group">
+                                <div class="form-group"> 
+                                <h6>Name</h6>
+                                <input type="text" name="name" class="form-control" id="inputMemberName" placeholder="Enter your Name">
+                                </div>
+                                <h6>Username</h6>
+                                <input type="text" name="username" class="form-control" id="inputMemberID" placeholder="Enter your user ID">
+                                </div>
+                                <br>
+                            </div>
+                            <center>
+                                <button type="submit" class="btn btn-primary">Submit</button>
+                            </center>
+                        </form>
+                  </div>
+                </div>
+                </div>
+              </div>
+    {% endif %}
+      
+      
+    <div id="signUpModal" class="modal fade" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Sign Up</h4> 
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form action="/signup/" method="POST">
+                    <div class = "container-sm">
+                    <div class="form-group">
+                        <div class="form-group"> 
+                        <h6>Name</h6>
+                        <input type="text" name="name" class="form-control" id="inputMemberName" placeholder="Enter your Name">
+                        <br>
+                        </div>
+                        <h6>Username</h6>
+                        <input type="text" name="username" class="form-control" id="inputMemberID" placeholder="Enter your user ID">
+                        </div>
+                        <br>
+                    </div>
+                    <center>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </center>
+                </form>
+          </div>
+        </div>
+        </div>
+      </div>
+
+      <div id="loginModal" class="modal fade" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Login</h4> 
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form action="/login/" method="POST">
+                    <div class = "container-sm">
+                    <div class="form-group">
+                        <div class="form-group"> 
+                        <h6>Username</h6>
+                        <input type="text" name="username" class="form-control" id="inputMemberID" placeholder="Enter your user ID">
+                        </div>
+                        <br>
+                    </div>
+                    <center>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </center>
+                </form>
+          </div>
+        </div>
+        </div>
+      </div>
+
+      
+    
+{% endblock content %}
