@@ -9,7 +9,9 @@ RUN pip3 install -r requirements.txt
 
 RUN apt-get install -y procps vim
 
+RUN mkdir -p /app/output
+
 COPY . .
 
 CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0"]
-#CMD [ "/bin/bash"]
+
