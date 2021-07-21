@@ -4,13 +4,16 @@ Dsembler is an easy to use web program for assembling short genomes that selects
 
 ## Installation
 
-Dsembler can be installed via GitHub. Users should have docker installed on their computer to run Dsembler locally. Docker can be downloaded from <https://docs.docker.com/get-docker/> [Ensure your BIOS settings are compatible with the docker application]. Run the following commands on your terminal
-```
-git clone https://github.com/sblabkribb/dsembler.git
-```
-Move to the dsembler directory
+Dsembler can be installed via GitHub. 
 
-### Build docker image build
+```
+$ git clone https://github.com/sblabkribb/dsembler.git
+```
+
+### Docker (Recommended)
+Users should have docker installed on their computer to run Dsembler locally. Docker can be downloaded from <https://docs.docker.com/get-docker/> [Ensure your BIOS settings are compatible with the docker application]. Run the following commands on your terminal. Move to the dsembler directory
+
+#### Build docker image build
 ```
 $ docker build -t dsembler:latest .
 ```
@@ -18,20 +21,31 @@ $ docker build -t dsembler:latest .
 Or pull the docker image from Dockerhub
 
 ```
-docker pull sblabkribb/dsembler:latest
+$ docker pull sblabkribb/dsembler:latest
 ```
 
-### Docker run for web version (Linux)
+#### Docker run for web version (Linux)
 
+```bash
+$ docker run -d --rm -v $(pwd):/app --publish 5000:5000 --name dsembler dsembler
 ```
-docker run -d --rm -v $(pwd):/app --publish 5000:5000 --name dsembler dsembler
+```powershell
+> docker run -d --rm -v %cd%:/app --publish 5000:5000 --name dsembler dsembler
 ```
 
-### Docker run for web version (Windows command line, cmd)
+### Python
+Users can directly run dsembler via Python. However, many packages will be required to be installed before a successful run (check requirements.txt).
 
+#### Flask run for web version 
+```bash Bash
+$ export FLASK_APP=app
+$ flask run
 ```
-docker run -d --rm -v %cd%:/app --publish 5000:5000 --name dsembler dsembler
+```powershell
+> $env:FLASK_APP = "app"
+> flask run
 ```
+
 =======================================================================
 
 ## Usage
@@ -54,31 +68,6 @@ Two buttons will appear on the same page once the target parameters are submitte
 
 -   Download the Excel file
 -   Download the FASTA file
-
-### Dsembler script version
-
-1.   Stop docker webversion if it's running.
-```
-docker stop dsembler
-```
-2.   Place a target fasta file to input directory
-
-3.   Run docker
-
-```
-docker run --rm -v %cd%:/app -w /app dsembler python script.py -f input/test.fasta -ol 150 -ov 20
-```
- 
-Multiple command lines are allowed
-
-```
-docker run --rm -v %cd%:/app -w /app dsembler python script.py -f input/test.fasta -ol 150 -ov 21
-docker run --rm -v %cd%:/app -w /app dsembler python script.py -f input/test.fasta -ol 150 -ov 22
-docker run --rm -v %cd%:/app -w /app dsembler python script.py -f input/test.fasta -ol 150 -ov 23
-```
-
-
-4. Check the output file in output_script directory
 
 
 #### Previous Data
