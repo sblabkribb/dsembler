@@ -29,6 +29,7 @@ $ docker pull sblabkribb/dsembler:latest
 ```bash
 $ docker run -d --rm -v $(pwd):/app --publish 5000:5000 --name dsembler dsembler
 ```
+#### Docker run for web version (Powershell / CMD)
 ```powershell
 > docker run -d --rm -v %cd%:/app --publish 5000:5000 --name dsembler dsembler
 ```
@@ -36,11 +37,12 @@ $ docker run -d --rm -v $(pwd):/app --publish 5000:5000 --name dsembler dsembler
 ### Python
 Users can directly run dsembler via Python. However, many packages will be required to be installed before a successful run (check requirements.txt).
 
-#### Flask run for web version 
+#### Flask run for web version Bash
 ```bash Bash
 $ export FLASK_APP=app
 $ flask run
 ```
+#### Flask run for web version Powershell
 ```powershell
 > $env:FLASK_APP = "app"
 > flask run
