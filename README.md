@@ -71,4 +71,4 @@ Detailed User Manual can be found at <https://github.com/sblabkribb/dsembler/blo
 
 The algorithm workflow is outlined below figure:
 
-![Schematic](images/workflow.png "Algorithm Workflow")
+![Schematic](images/workflow_1.png "Algorithm Workflow")
