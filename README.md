@@ -33,9 +33,10 @@ $ docker run -d --rm -v $(pwd):/app --publish 5000:5000 --name dsembler dsembler
 ```powershell
 > docker run -d --rm -v %cd%:/app --publish 5000:5000 --name dsembler dsembler
 ```
+Replace `$(pwd)` and `%cd%` with the directory on your local machine you want to store the outputs
 
 ### Python
-Users can directly run dsembler via Python. However, many packages will be required to be installed before a successful run (check requirements.txt).
+Users can directly run dsembler via Python. However, many packages will be required to be installed before a successful run  (check requirements.txt).
 
 #### Flask run for web version Bash
 ```bash Bash

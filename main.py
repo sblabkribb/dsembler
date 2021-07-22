@@ -13,9 +13,8 @@ parser = argparse.ArgumentParser()
 # Input parameters and initialize variables
 class Input:
     # initialize variables
-    def __init__(self, file_name, oligomer_size, overlap_size, optimal_temp, temp_range, user, seq_orientation):
-        self.gene_seq = re.sub(r"\s+", "", str(file_name)).upper()
-        #self.gene_seq = FastaFile(file_name).read_fasta()
+    def __init__(self, gene_seq, oligomer_size, overlap_size, optimal_temp, temp_range, user, seq_orientation):
+        self.gene_seq = re.sub(r"\s+", "", str(gene_seq)).upper()
         self.oligomer_size = int(oligomer_size)
         self.overlap_size = int(overlap_size)
         self.optimal_temp = round(float(optimal_temp), 4)
@@ -25,8 +24,8 @@ class Input:
 
 class Assembly(Input):
 
-    def __init__(self, file_name, oligomer_size, overlap_size, optimal_temp, temp_range, seq_orientation, user):
-        super().__init__(file_name, oligomer_size, overlap_size, optimal_temp, temp_range, seq_orientation, user)
+    def __init__(self, gene_seq, oligomer_size, overlap_size, optimal_temp, temp_range, seq_orientation, user):
+        super().__init__(gene_seq, oligomer_size, overlap_size, optimal_temp, temp_range, seq_orientation, user)
         self.og = OligomerGroups(self.gene_seq, self.seq_orientation, self.oligomer_size, self.overlap_size, self.optimal_temp, self.temp_range)
         self.c = Clusters()
 
@@ -50,6 +49,11 @@ class Assembly(Input):
         row = 1
         col = 0
         fasta_records = []
+
+        input_variables = SeqRecord(Seq.Seq(self.gene_seq), f'Input Variables',
+                                    description=f'Target Oligomer length: {self.oligomer_size}, Target Overlap Length: {self.overlap_size}, Target Overlap Tm: {self.optimal_temp}, Tm Range: {self.temp_range}')
+        fasta_records.append(input_variables)
+
         for cluster in range(len(cluster_five_to_three)):
             for oligomer in range(len(cluster_five_to_three[cluster])):
                 overlap_len = overlap_cluster[cluster][oligomer]
@@ -84,6 +88,7 @@ class Assembly(Input):
                 worksheet.write(row, col + 8, ", ".join([i for i in repeats[cluster][oligomer]]))
                 row += 1
         workbook.close()
+
 
         SeqIO.write(fasta_records,
                     f'/app/output/oligomers_{self.user}_{self.oligomer_size}_{self.overlap_size}_{int(self.optimal_temp)}_{self.seq_orientation}.fasta',
