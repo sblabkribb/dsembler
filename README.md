@@ -2,7 +2,7 @@
 
 Dsembler is an easy to use web program for assembling short genomes that selects the best possible oligomer sequences based on the users' target parameters.
 
-## Installation
+## 1. Installation
 
 Dsembler can be installed via GitHub. 
 
@@ -10,7 +10,7 @@ Dsembler can be installed via GitHub.
 $ git clone https://github.com/sblabkribb/dsembler.git
 ```
 
-### Docker (Recommended)
+### 1.1 Docker (Recommended)
 Users should have docker installed on their computer to run Dsembler locally. Docker can be downloaded from <https://docs.docker.com/get-docker/> [Ensure your BIOS settings are compatible with the docker application]. Run the following commands on your terminal. Move to the dsembler directory
 
 #### Build docker image build
@@ -24,7 +24,7 @@ Or pull the docker image from Dockerhub
 $ docker pull sblabkribb/dsembler:latest
 ```
 
-#### Docker run for web version (Linux)
+####  Docker run for web version (Linux)
 
 ```bash
 $ docker run -d --rm -v $(pwd):/app --publish 5000:5000 --name dsembler dsembler
@@ -35,7 +35,7 @@ $ docker run -d --rm -v $(pwd):/app --publish 5000:5000 --name dsembler dsembler
 ```
 Replace `$(pwd)` and `%cd%` with the directory on your local machine you want to store the outputs
 
-### Python
+### 1.2 Python
 Users can directly run dsembler via Python. However, many packages will be required to be installed before a successful run  (check requirements.txt).
 
 #### Flask run for web version Bash
@@ -51,39 +51,14 @@ $ flask run
 
 =======================================================================
 
-## Usage
+## 2. Usage
 
-Detailed User Manual can be found at <https://github.com/sblabkribb/dsembler/blob/main/documents/manual.pdf>
+Detailed User Manual can be found at <https://github.com/sblabkribb/dsembler/blob/main/docs/manual.pdf>
 
-The user interface is simple to navigate through as shown below: ![Screenshot](images/main_form.png "Input Page") First enter in the required parameters to generate appropriate oligomers for your gene assembly.
-
--   Gene Sequence
--   Oligomer Size
--   Overlap Size
--   Target Melting Temperature of overlaps
--   Acceptable range of target melting temperature
--   Sequence Orientation
--   User ID (if saving query)
-
-> Note: Melting Temperature of overlaps are calculated based on the Nearest Neighbour Equation and the Sugimoto (1996) thermodynamic table.
-
-Two buttons will appear on the same page once the target parameters are submitted:
-
--   Download the Excel file
--   Download the FASTA file
-
-
-#### Previous Data
-
-|                  Login                   |                      Previous Work                       |
-|:----------------------------------------:|:--------------------------------------------------------:|
-| ![Screenshot](images/login.png "Login") | ![Screenshot](images/previous_data.png "Previous Work") |
-
-Users can sign up and login to access their previous data. The database was created using the Flask-SQLite.
 
 =======================================================================
 
-## Python 3.8.5
+## 3. Python 3.8.5
 
 ### Libraries used:
 
@@ -92,7 +67,7 @@ Users can sign up and login to access their previous data. The database was crea
 
 =======================================================================
 
-### Workflow
+## 4. Workflow
 
 The algorithm workflow is outlined below figure:
 
