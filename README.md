@@ -1,6 +1,6 @@
 # Dsembler (DNA Assembly Designer)
 
-<<<<<<< HEAD
+
 Dsembler is an easy to use web program for assembling short genomes that selects the best possible oligomer sequences based on the users' target parameters.
 
 ## 1. Installation
@@ -132,4 +132,4 @@ This library/tool was used to make a simple web-based user interface. Related li
 The algorithm workflow is outlined below figure:
 
 ![Schematic](/images/workflow.png "Algorithm Workflow")
->>>>>>> 480ff4c5c4a5310ff5414c1474b635e34c6c908b
+
