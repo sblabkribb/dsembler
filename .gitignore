@@ -1,1 +1,10 @@
+<<<<<<< HEAD
 __pycache__
+=======
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+output_script/
+output/
+>>>>>>> 480ff4c5c4a5310ff5414c1474b635e34c6c908b
