@@ -44,10 +44,6 @@ assembly.py
         -| smallest_oligomers(self, optimal_oligomers, optimal_overlap_len, rough_oligo_list)
 -| Clusters
     -| complementary_clusters(self, oligomers, overlap_length) 
-<<<<<<< HEAD
-=======
-    -| recommended_clusters(self, oligomers, overlap_length)
->>>>>>> 480ff4c5c4a5310ff5414c1474b635e34c6c908b
 '''
 
 # processing DNA sequences within lists
